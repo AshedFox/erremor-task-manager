@@ -1,6 +1,14 @@
-import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import ms, { StringValue } from 'ms';
 
 import { AuthService } from './auth.service';
@@ -52,5 +60,29 @@ export class AuthController {
   @HttpCode(204)
   async activate(@Body('token') activationToken: string): Promise<void> {
     return this.authService.activateAccount(activationToken);
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<AuthResponseDto> {
+    const refreshToken = req.cookies[this.refreshCookieName] as string;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token!');
+    }
+    const { refreshToken: newRefreshToken, ...rest } =
+      await this.authService.refreshTokens(refreshToken);
+
+    res.cookie(this.refreshCookieName, newRefreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      path: '/auth/refresh',
+      maxAge: this.refreshCookieLifetime,
+    });
+
+    return rest;
   }
 }

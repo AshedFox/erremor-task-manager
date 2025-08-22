@@ -12,3 +12,18 @@ export type GenerateTokenResult = {
   jti: string;
   token: string;
 };
+
+export type RefreshTokenPayload = DefaultTokenPayload & {
+  jti: string;
+};
+
+export type RefreshTokenData = {
+  jti: string;
+  userId: string;
+};
+
+export type RotateRefreshTokenResult = {
+  token: string;
+  jti: string;
+  userId: string;
+};

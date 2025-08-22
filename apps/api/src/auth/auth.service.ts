@@ -29,6 +29,9 @@ import {
   AuthResult,
   DefaultTokenPayload,
   GenerateTokenResult,
+  RefreshTokenData,
+  RefreshTokenPayload,
+  RotateRefreshTokenResult,
 } from './types/auth.types';
 
 @Injectable()
@@ -156,6 +159,65 @@ export class AuthService {
     await this.redisService.sadd(`user_refresh:${userId}`, jti);
 
     return { token, jti };
+  }
+
+  async validateRefreshToken(token: string): Promise<RefreshTokenData> {
+    let payload: RefreshTokenPayload;
+    try {
+      payload = await this.refreshJwtService.verifyAsync(token);
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token!');
+    }
+    const { jti, sub: userId } = payload;
+    if (!jti || !userId) {
+      throw new UnauthorizedException('Invalid refresh token!');
+    }
+
+    const stored = await this.redisService.getdel(`refresh:${jti}`);
+    await this.redisService.srem(`user_refresh:${userId}`, jti);
+
+    if (!stored || stored !== userId) {
+      throw new UnauthorizedException('Invalid refresh token!');
+    }
+    return { userId, jti };
+  }
+
+  async rotateRefreshToken(
+    oldToken: string
+  ): Promise<RotateRefreshTokenResult> {
+    const { userId } = await this.validateRefreshToken(oldToken);
+    const { jti, token } = await this.generateRefreshToken(userId);
+    return { userId, jti, token };
+  }
+
+  async revokeRefreshToken(jti: string, userId: string): Promise<void> {
+    await this.redisService.del(`refresh:${jti}`);
+    await this.redisService.srem(`user_refresh:${userId}`, jti);
+  }
+
+  async revokeRefreshTokensForUser(userId: string): Promise<void> {
+    const jtis = await this.redisService.smembers(`user_refresh:${userId}`);
+    if (jtis && jtis.length) {
+      const pipeline = this.redisService.pipeline();
+      for (const jti of jtis) {
+        pipeline.del(`refresh:${jti}`);
+      }
+      pipeline.del(`user_refresh:${userId}`);
+      await pipeline.exec();
+    }
+  }
+
+  async refreshTokens(oldRefreshToken: string): Promise<AuthResult> {
+    const { token: refreshToken, userId } =
+      await this.rotateRefreshToken(oldRefreshToken);
+    const accessToken = await this.generateAccessToken(userId);
+    return {
+      accessToken,
+      tokenType: 'Bearer',
+      expiresIn: this.accessTokenExpiresIn,
+      refreshToken,
+      user: await this.userService.findOneById(userId),
+    };
   }
 
   async generateActivationToken(userId: string): Promise<string> {
