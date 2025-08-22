@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
 
+import { EmailModule } from './email/email.module';
 import { UsernameGeneratorModule } from './username-generator/username-generator.module';
 
 @Module({
@@ -15,6 +16,7 @@ import { UsernameGeneratorModule } from './username-generator/username-generator
       inject: [ConfigService],
     }),
     UsernameGeneratorModule,
+    EmailModule,
   ],
   controllers: [],
   providers: [],
