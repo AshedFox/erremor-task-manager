@@ -1,4 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRedis } from '@nestjs-modules/ioredis';
@@ -14,7 +21,9 @@ import {
   REFRESH_JWT,
   RESET_JWT,
 } from './constants/jwt';
+import { RegisterDto } from './dto/register.dto';
 import { PasswordService } from './password.service';
+import { DefaultTokenPayload } from './types/auth.types';
 
 @Injectable()
 export class AuthService {
@@ -48,5 +57,79 @@ export class AuthService {
     this.activationTokenLifetime = this.configService.getOrThrow<StringValue>(
       'ACTIVATION_TOKEN_LIFETIME'
     );
+  }
+
+  async register({ email, password }: RegisterDto): Promise<void> {
+    try {
+      const existingUser =
+        await this.userService.findOneByEmailWithPassword(email);
+
+      if (existingUser.status !== 'PENDING') {
+        throw new ConflictException('User with this email already exists!');
+      }
+
+      const passwordMatches = await this.passwordService.verify(
+        existingUser.passwordHash,
+        password
+      );
+
+      if (!passwordMatches) {
+        throw new UnauthorizedException('Failed to register!');
+      }
+
+      return this.emailService.sendAccountActivationEmail(
+        email,
+        await this.generateActivationToken(existingUser.id),
+        this.activationTokenLifetime
+      );
+    } catch (e) {
+      if (e instanceof NotFoundException) {
+        const user = await this.userService.create({ email, password });
+
+        return this.emailService.sendAccountActivationEmail(
+          email,
+          await this.generateActivationToken(user.id),
+          this.activationTokenLifetime
+        );
+      }
+
+      throw e;
+    }
+  }
+
+  async activateAccount(token: string): Promise<void> {
+    const userId = await this.validateActivationToken(token);
+    await this.userService.activate(userId);
+  }
+
+  async generateActivationToken(userId: string): Promise<string> {
+    const token = await this.activationJwtService.signAsync({ sub: userId });
+
+    await this.redisService.set(
+      `activate:${userId}`,
+      token,
+      'PX',
+      ms(this.activationTokenLifetime)
+    );
+
+    return token;
+  }
+
+  async validateActivationToken(token: string): Promise<string> {
+    let payload: DefaultTokenPayload;
+    try {
+      payload = await this.activationJwtService.verifyAsync(token);
+    } catch {
+      throw new BadRequestException('Invalid activation token!');
+    }
+
+    const userId = payload.sub;
+    const storedToken = await this.redisService.getdel(`activate:${userId}`);
+
+    if (!storedToken || storedToken !== token) {
+      throw new BadRequestException('Invalid activation token!');
+    }
+
+    return userId;
   }
 }

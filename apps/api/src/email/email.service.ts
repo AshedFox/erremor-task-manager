@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MailerService } from '@nestjs-modules/mailer';
 
@@ -13,5 +13,29 @@ export class EmailService {
   ) {
     this.appName = this.configService.getOrThrow<string>('APP_NAME');
     this.appUrl = this.configService.getOrThrow<string>('APP_FRONTEND_URL');
+  }
+
+  async sendAccountActivationEmail(
+    email: string,
+    token: string,
+    lifetime: string
+  ) {
+    try {
+      const activationLink = `${this.appUrl}/auth/activate?token=${token}`;
+
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Approve registration',
+        template: 'activation',
+        context: {
+          activationLink,
+          appName: this.appName,
+          currentYear: new Date().getFullYear(),
+          lifetime,
+        },
+      });
+    } catch {
+      throw new InternalServerErrorException('Failed to send email!');
+    }
   }
 }
