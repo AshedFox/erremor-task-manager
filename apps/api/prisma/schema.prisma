@@ -6,3 +6,111 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum AccountStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+model User {
+  id           String               @id @default(uuid()) @db.Uuid
+  email        String               @unique @db.VarChar(255)
+  passwordHash String               @db.VarChar
+  status       AccountStatus        @default(PENDING)
+  displayName  String?              @db.VarChar(64)
+  username     String               @unique @db.VarChar(32)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  birthDate    DateTime?
+  ownProjects  Project[]
+  projects     ProjectParticipant[]
+  tasks        Task[]
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+  CANCELLED
+  FROZEN
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Tag {
+  id    String @id @default(uuid()) @db.Uuid
+  name  String @db.VarChar(64)
+  color String @db.VarChar(50)
+  tasks Task[]
+}
+
+model CheckListItem {
+  id          String  @id @default(uuid()) @db.Uuid
+  title       String  @db.VarChar(100)
+  isCompleted Boolean
+  task        Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String  @db.Uuid
+}
+
+model Task {
+  id          String          @id @default(uuid()) @db.Uuid
+  title       String          @db.VarChar(100)
+  description String?         @db.Text
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  deadline    DateTime?
+  status      TaskStatus      @default(OPEN)
+  priority    TaskPriority
+  projectId   String          @db.Uuid
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  creatorId   String          @db.Uuid
+  creator     User            @relation(fields: [creatorId], references: [id])
+  tags        Tag[]
+  checkList   CheckListItem[]
+}
+
+enum ProjectStatus {
+  OPEN
+  ARCHIVED
+  FROZEN
+}
+
+model Project {
+  id           String               @id @default(uuid()) @db.Uuid
+  name         String               @db.VarChar(64)
+  description  String?              @db.Text
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  color        String?              @db.VarChar(48)
+  status       ProjectStatus        @default(OPEN)
+  creatorId    String               @db.Uuid
+  creator      User                 @relation(fields: [creatorId], references: [id])
+  tasks        Task[]
+  participants ProjectParticipant[]
+}
+
+enum ParticipantRole {
+  GUEST
+  USER
+  ADMIN
+  OWNER
+}
+
+model ProjectParticipant {
+  id        String          @id @default(uuid()) @db.Uuid
+  role      ParticipantRole
+  joinedAt  DateTime        @default(now())
+  projectId String          @db.Uuid
+  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String          @db.Uuid
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+}
