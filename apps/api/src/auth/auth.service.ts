@@ -9,6 +9,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { randomBytes } from 'crypto';
 import Redis from 'ioredis';
 import ms, { StringValue } from 'ms';
 
@@ -21,9 +22,14 @@ import {
   REFRESH_JWT,
   RESET_JWT,
 } from './constants/jwt';
+import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { PasswordService } from './password.service';
-import { DefaultTokenPayload } from './types/auth.types';
+import {
+  AuthResult,
+  DefaultTokenPayload,
+  GenerateTokenResult,
+} from './types/auth.types';
 
 @Injectable()
 export class AuthService {
@@ -97,9 +103,59 @@ export class AuthService {
     }
   }
 
+  async login({ email, password }: LoginDto): Promise<AuthResult> {
+    try {
+      const existingUser =
+        await this.userService.findOneByEmailWithPassword(email);
+
+      const passwordMatches = await this.passwordService.verify(
+        existingUser.passwordHash,
+        password
+      );
+
+      if (!passwordMatches || existingUser.status !== 'ACTIVE') {
+        throw new UnauthorizedException('Failed to login');
+      }
+
+      const [accessToken, refreshToken] = await Promise.all([
+        this.generateAccessToken(existingUser.id),
+        this.generateRefreshToken(existingUser.id),
+      ]);
+
+      return {
+        tokenType: 'Bearer',
+        expiresIn: this.accessTokenExpiresIn,
+        accessToken,
+        refreshToken: refreshToken.token,
+        user: existingUser,
+      };
+    } catch {
+      throw new UnauthorizedException('Failed to login');
+    }
+  }
+
   async activateAccount(token: string): Promise<void> {
     const userId = await this.validateActivationToken(token);
     await this.userService.activate(userId);
+  }
+
+  generateAccessToken(userId: string): Promise<string> {
+    return this.accessJwtService.signAsync({ userId });
+  }
+
+  async generateRefreshToken(userId: string): Promise<GenerateTokenResult> {
+    const jti = randomBytes(16).toString('hex');
+    const token = await this.refreshJwtService.signAsync({ sub: userId, jti });
+
+    await this.redisService.set(
+      `refresh:${jti}`,
+      userId,
+      'PX',
+      ms(this.refreshTokenLifetime)
+    );
+    await this.redisService.sadd(`user_refresh:${userId}`, jti);
+
+    return { token, jti };
   }
 
   async generateActivationToken(userId: string): Promise<string> {

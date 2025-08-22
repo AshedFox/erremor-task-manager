@@ -1,8 +1,11 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 import ms, { StringValue } from 'ms';
 
 import { AuthService } from './auth.service';
+import { AuthResponseDto } from './dto/auth-response.dto';
+import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
@@ -20,6 +23,24 @@ export class AuthController {
     this.refreshCookieLifetime = ms(
       this.configService.getOrThrow<StringValue>('REFRESH_TOKEN_LIFETIME')
     );
+  }
+
+  @Post('login')
+  @HttpCode(200)
+  async login(
+    @Body() data: LoginDto,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<AuthResponseDto> {
+    const { refreshToken, ...rest } = await this.authService.login(data);
+
+    res.cookie(this.refreshCookieName, refreshToken, {
+      httpOnly: true,
+      sameSite: 'strict',
+      path: '/auth/refresh',
+      maxAge: this.refreshCookieLifetime,
+    });
+
+    return rest;
   }
 
   @Post('register')
