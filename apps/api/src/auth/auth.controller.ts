@@ -85,4 +85,19 @@ export class AuthController {
 
     return rest;
   }
+
+  @Post('request-password-reset')
+  @HttpCode(204)
+  async requestPasswordReset(@Body('email') email: string): Promise<void> {
+    return this.authService.requestPasswordReset(email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(204)
+  async resetPassword(
+    @Body('token') resetToken: string,
+    @Body('newPassword') newPassword: string
+  ): Promise<void> {
+    return this.authService.resetPassword(resetToken, newPassword);
+  }
 }

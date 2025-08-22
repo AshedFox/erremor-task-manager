@@ -38,4 +38,24 @@ export class EmailService {
       throw new InternalServerErrorException('Failed to send email!');
     }
   }
+
+  async sendPasswordResetEmail(email: string, token: string, lifetime: string) {
+    try {
+      const resetLink = `${this.appUrl}/auth/reset-password?token=${token}`;
+
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Approve registration',
+        template: 'reset-password',
+        context: {
+          resetLink,
+          appName: this.appName,
+          currentYear: new Date().getFullYear(),
+          lifetime,
+        },
+      });
+    } catch {
+      throw new InternalServerErrorException('Failed to send email!');
+    }
+  }
 }

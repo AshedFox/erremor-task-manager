@@ -220,6 +220,19 @@ export class AuthService {
     };
   }
 
+  async generateResetPasswordToken(userId: string): Promise<string> {
+    const token = await this.resetJwtService.signAsync({ sub: userId });
+
+    await this.redisService.set(
+      `reset_password:${userId}`,
+      token,
+      'PX',
+      ms(this.resetPasswordTokenLifetime)
+    );
+
+    return token;
+  }
+
   async generateActivationToken(userId: string): Promise<string> {
     const token = await this.activationJwtService.signAsync({ sub: userId });
 
@@ -249,5 +262,41 @@ export class AuthService {
     }
 
     return userId;
+  }
+
+  async validateResetToken(token: string): Promise<string> {
+    let payload: DefaultTokenPayload;
+    try {
+      payload = await this.resetJwtService.verifyAsync(token);
+    } catch {
+      throw new BadRequestException('Invalid reset token!');
+    }
+
+    const userId = payload.sub;
+    const storedToken = await this.redisService.getdel(
+      `reset_password:${userId}`
+    );
+
+    if (!storedToken || storedToken !== token) {
+      throw new BadRequestException('Invalid reset token!');
+    }
+
+    return userId;
+  }
+
+  async requestPasswordReset(email: string): Promise<void> {
+    const user = await this.userService.findOneByEmail(email);
+
+    return this.emailService.sendPasswordResetEmail(
+      email,
+      await this.generateResetPasswordToken(user.id),
+      this.resetPasswordTokenLifetime
+    );
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const userId = await this.validateResetToken(token);
+    await this.userService.setPassword(userId, newPassword);
+    await this.revokeRefreshTokensForUser(userId);
   }
 }
