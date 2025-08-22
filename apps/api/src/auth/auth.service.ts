@@ -299,4 +299,13 @@ export class AuthService {
     await this.userService.setPassword(userId, newPassword);
     await this.revokeRefreshTokensForUser(userId);
   }
+
+  async changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    await this.userService.updatePassword(userId, oldPassword, newPassword);
+    await this.revokeRefreshTokensForUser(userId);
+  }
 }
