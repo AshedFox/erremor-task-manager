@@ -35,7 +35,7 @@ enum TaskStatus {
   IN_REVIEW
   DONE
   CANCELLED
-  FREEZED
+  FROZEN
 }
 
 enum TaskPriority {
@@ -79,7 +79,7 @@ model Task {
 enum ProjectStatus {
   OPEN
   ARCHIVED
-  FREEZED
+  FROZEN
 }
 
 model Project {
