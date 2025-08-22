@@ -114,4 +114,16 @@ export class AuthController {
   ): Promise<void> {
     return this.authService.changePassword(userId, oldPassword, newPassword);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @HttpCode(204)
+  async logout(@Req() req: Request): Promise<void> {
+    const refreshToken = req.cookies[this.refreshCookieName] as string;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('No refresh token!');
+    }
+    return this.authService.logout(refreshToken);
+  }
 }

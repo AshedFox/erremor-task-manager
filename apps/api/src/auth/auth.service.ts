@@ -308,4 +308,8 @@ export class AuthService {
     await this.userService.updatePassword(userId, oldPassword, newPassword);
     await this.revokeRefreshTokensForUser(userId);
   }
+
+  async logout(refreshToken: string) {
+    await this.validateRefreshToken(refreshToken);
+  }
 }
