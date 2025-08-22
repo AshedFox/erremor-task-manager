@@ -4,6 +4,7 @@ import { AuthModule } from '@/auth/auth.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { UsernameGeneratorModule } from '@/username-generator/username-generator.module';
 
+import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
 @Module({
@@ -12,7 +13,7 @@ import { UserService } from './user.service';
     forwardRef(() => AuthModule),
     UsernameGeneratorModule,
   ],
-  controllers: [],
+  controllers: [UserController],
   providers: [UserService],
   exports: [UserService],
 })
