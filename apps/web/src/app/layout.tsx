@@ -1,5 +1,6 @@
 import '@workspace/ui/globals.css';
 
+import { Toaster } from '@workspace/ui/components/sonner';
 import { Metadata } from 'next';
 import { JetBrains_Mono, Lora, Manrope, Roboto } from 'next/font/google';
 
@@ -46,7 +47,10 @@ export default function RootLayout({
       <body
         className={`${fontSans.variable} ${fontMono.variable} ${fontSerif.variable} ${fontHeading.variable} font-sans antialiased min-h-svh flex flex-col`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <Toaster position="bottom-right" />
+        </Providers>
       </body>
     </html>
   );
