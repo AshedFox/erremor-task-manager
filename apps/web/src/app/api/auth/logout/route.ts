@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -27,6 +28,8 @@ export async function POST(request: NextRequest) {
   if (res.ok) {
     nextRes.cookies.delete(ACCESS_TOKEN_COOKIE_KEY);
   }
+
+  revalidatePath('/', 'layout');
 
   return nextRes;
 }

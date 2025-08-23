@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { ACCESS_TOKEN_COOKIE_KEY, API_BASE_URL } from '@/constants/env';
@@ -40,6 +41,8 @@ export async function POST(request: NextRequest) {
     path: '/',
     maxAge: Number(data.expiresIn),
   });
+
+  revalidatePath('/', 'layout');
 
   return nextRes;
 }
