@@ -7,6 +7,7 @@ import { UserModule } from '@/user/user.module';
 
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { jwtProviders } from './jwt.providers';
 import { PasswordService } from './password.service';
 
@@ -25,7 +26,13 @@ import { PasswordService } from './password.service';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, AuthController, PasswordService, ...jwtProviders],
+  providers: [
+    AuthService,
+    AuthController,
+    PasswordService,
+    JwtAuthGuard,
+    ...jwtProviders,
+  ],
   controllers: [AuthController],
   exports: [PasswordService],
 })
