@@ -118,12 +118,21 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(204)
-  async logout(@Req() req: Request): Promise<void> {
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<void> {
     const refreshToken = req.cookies[this.refreshCookieName] as string;
 
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token!');
     }
-    return this.authService.logout(refreshToken);
+    await this.authService.logout(refreshToken);
+    res.cookie(this.refreshCookieName, '', {
+      httpOnly: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 0,
+    });
   }
 }
