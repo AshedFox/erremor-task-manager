@@ -20,7 +20,7 @@ export async function middleware(req: NextRequest) {
   if (isProtectedPath(req.nextUrl.pathname) && !accessToken) {
     const refreshRes = await fetch(new URL(`/api/auth/refresh`, req.url), {
       method: 'POST',
-      headers: { Cookie: req.cookies.toString() },
+      headers: { Cookie: req.headers.get('cookie') ?? '' },
       credentials: 'include',
     });
 
