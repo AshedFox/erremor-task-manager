@@ -47,7 +47,7 @@ export class AuthController {
     res.cookie(this.refreshCookieName, refreshToken, {
       httpOnly: true,
       sameSite: 'strict',
-      path: '/auth/refresh',
+      path: '/',
       maxAge: this.refreshCookieLifetime,
     });
 
@@ -76,17 +76,28 @@ export class AuthController {
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token!');
     }
-    const { refreshToken: newRefreshToken, ...rest } =
-      await this.authService.refreshTokens(refreshToken);
 
-    res.cookie(this.refreshCookieName, newRefreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/auth/refresh',
-      maxAge: this.refreshCookieLifetime,
-    });
+    try {
+      const { refreshToken: newRefreshToken, ...rest } =
+        await this.authService.refreshTokens(refreshToken);
 
-    return rest;
+      res.cookie(this.refreshCookieName, newRefreshToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: this.refreshCookieLifetime,
+      });
+
+      return rest;
+    } catch (e) {
+      res.cookie(this.refreshCookieName, '', {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 0,
+      });
+      throw e;
+    }
   }
 
   @Post('request-password-reset')
