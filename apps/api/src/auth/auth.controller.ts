@@ -47,7 +47,7 @@ export class AuthController {
     res.cookie(this.refreshCookieName, refreshToken, {
       httpOnly: true,
       sameSite: 'strict',
-      path: '/auth/refresh',
+      path: '/',
       maxAge: this.refreshCookieLifetime,
     });
 
@@ -76,17 +76,28 @@ export class AuthController {
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token!');
     }
-    const { refreshToken: newRefreshToken, ...rest } =
-      await this.authService.refreshTokens(refreshToken);
 
-    res.cookie(this.refreshCookieName, newRefreshToken, {
-      httpOnly: true,
-      sameSite: 'strict',
-      path: '/auth/refresh',
-      maxAge: this.refreshCookieLifetime,
-    });
+    try {
+      const { refreshToken: newRefreshToken, ...rest } =
+        await this.authService.refreshTokens(refreshToken);
 
-    return rest;
+      res.cookie(this.refreshCookieName, newRefreshToken, {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: this.refreshCookieLifetime,
+      });
+
+      return rest;
+    } catch (e) {
+      res.cookie(this.refreshCookieName, '', {
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 0,
+      });
+      throw e;
+    }
   }
 
   @Post('request-password-reset')
@@ -118,12 +129,21 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(204)
-  async logout(@Req() req: Request): Promise<void> {
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<void> {
     const refreshToken = req.cookies[this.refreshCookieName] as string;
 
     if (!refreshToken) {
       throw new UnauthorizedException('No refresh token!');
     }
-    return this.authService.logout(refreshToken);
+    await this.authService.logout(refreshToken);
+    res.cookie(this.refreshCookieName, '', {
+      httpOnly: true,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 0,
+    });
   }
 }
