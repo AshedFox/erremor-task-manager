@@ -1,3 +1,4 @@
+import { ResponseCookies } from 'next/dist/server/web/spec-extension/cookies';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -38,8 +39,10 @@ async function handleProxy(req: NextRequest, path: string[]) {
     });
 
     if (refreshRes.ok) {
-      const data = await refreshRes.json();
-      res = await forwardRequest(req, url, data.accessToken);
+      const newAccessToken = new ResponseCookies(
+        new Headers(refreshRes.headers)
+      ).get(ACCESS_TOKEN_COOKIE_KEY)?.value;
+      res = await forwardRequest(req, url, newAccessToken);
     }
     res.headers.append(
       'set-cookie',
