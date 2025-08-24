@@ -3,14 +3,14 @@ import React from 'react';
 
 import Header from '@/components/Header';
 import { UserProvider } from '@/features/auth/UserContext';
-import { getServerUser } from '@/lib/user.server';
+import { getUser } from '@/lib/get-user.server';
 
 const Layout = async ({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  const user = (await getServerUser())!;
+  const user = await getUser();
 
   return (
     <UserProvider initialUser={user}>
