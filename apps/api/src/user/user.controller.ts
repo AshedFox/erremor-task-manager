@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
+  ParseUUIDPipe,
   Patch,
   UseGuards,
 } from '@nestjs/common';
@@ -19,18 +21,11 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get(':id')
-  findOne(id: string): Promise<SafeUser> {
-    return this.userService.findOneById(id);
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Get('me')
   findMe(@CurrentUser('sub') userId: string): Promise<SafeUser> {
     return this.userService.findOneById(userId);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch('me')
   updateMe(
     @CurrentUser('sub') userId: string,
@@ -39,9 +34,14 @@ export class UserController {
     return this.userService.update(userId, updateUserDto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete('me')
   removeMe(@CurrentUser('sub') userId: string): Promise<SafeUser> {
     return this.userService.remove(userId);
+  }
+
+  @Get(':id')
+  findOne(@Param(ParseUUIDPipe) id: string): Promise<SafeUser> {
+    console.log('try to find me :)');
+    return this.userService.findOneById(id);
   }
 }
