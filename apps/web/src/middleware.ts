@@ -26,7 +26,9 @@ export async function middleware(req: NextRequest) {
     });
 
     if (!refreshRes.ok) {
-      return NextResponse.redirect(new URL('/login', req.url));
+      const redirectUrl = new URL(`/login`, origin);
+      redirectUrl.searchParams.set('from', `${basePath}${pathname}${search}`);
+      return NextResponse.redirect(redirectUrl);
     }
 
     return NextResponse.redirect(req.nextUrl, {

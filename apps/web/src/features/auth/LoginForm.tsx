@@ -21,7 +21,7 @@ import {
 } from '@workspace/ui/components/form';
 import { Input } from '@workspace/ui/components/input';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -44,6 +44,7 @@ const LoginForm = () => {
 
   const queryClient = getQueryClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { mutate, isPending } = useMutation({
     mutationFn: async (input: LoginInput) => {
       const res = await fetch('/api/auth/login', {
@@ -69,7 +70,7 @@ const LoginForm = () => {
     onSuccess: () => {
       toast.success('Login successful!');
       queryClient.invalidateQueries({ queryKey: ['current-user'] });
-      router.replace('/projects');
+      router.replace(searchParams.get('from') ?? '/projects');
     },
   });
 
