@@ -143,7 +143,7 @@ export class AuthService {
   }
 
   generateAccessToken(userId: string): Promise<string> {
-    return this.accessJwtService.signAsync({ userId });
+    return this.accessJwtService.signAsync({ sub: userId });
   }
 
   async generateRefreshToken(userId: string): Promise<GenerateTokenResult> {
