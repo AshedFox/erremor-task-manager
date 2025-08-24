@@ -1,29 +1,29 @@
 # Erremore task manager
 
+Advanced task manager
+
 ## Usage
 
-```bash
-pnpm dlx shadcn@latest init
-```
-
-## Adding components
-
-To add components to your app, run the following command at the root of your `web` app:
+- Install dependencies:
 
 ```bash
-pnpm dlx shadcn@latest add button -c apps/web
+pnpm install
 ```
 
-This will place the ui components in the `packages/ui/src/components` directory.
+- Run (dev):
 
-## Tailwind
+```bash
+pnpm run dev
+```
 
-Your `tailwind.config.ts` and `globals.css` are already set up to use the components from the `ui` package.
+- Build:
 
-## Using components
+```bash
+pnpm run build
+```
 
-To use the components in your app, import them from the `ui` package.
+- Lint:
 
-```tsx
-import { Button } from '@workspace/ui/components/button';
+```bash
+pnpm run lint
 ```
