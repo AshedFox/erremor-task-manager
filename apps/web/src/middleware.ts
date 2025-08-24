@@ -16,9 +16,10 @@ function isGuestOnlyPath(pathname: string) {
 
 export async function middleware(req: NextRequest) {
   const accessToken = req.cookies.get(ACCESS_TOKEN_COOKIE_KEY)?.value;
+  const { pathname, search, basePath, origin } = req.nextUrl;
 
-  if (isProtectedPath(req.nextUrl.pathname) && !accessToken) {
-    const refreshRes = await fetch(new URL(`/api/auth/refresh`, req.url), {
+  if (isProtectedPath(pathname) && !accessToken) {
+    const refreshRes = await fetch(new URL(`/api/auth/refresh`, origin), {
       method: 'POST',
       headers: { Cookie: req.headers.get('cookie') ?? '' },
       credentials: 'include',
@@ -33,8 +34,8 @@ export async function middleware(req: NextRequest) {
         'set-cookie': refreshRes.headers.get('set-cookie') || '',
       },
     });
-  } else if (isGuestOnlyPath(req.nextUrl.pathname) && !!accessToken) {
-    return NextResponse.redirect(new URL('/projects', req.url));
+  } else if (isGuestOnlyPath(pathname) && !!accessToken) {
+    return NextResponse.redirect(new URL('/projects', origin));
   }
 
   return NextResponse.next();
