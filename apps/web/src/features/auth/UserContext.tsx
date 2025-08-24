@@ -13,9 +13,9 @@ type UserContextValue = {
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
 
-type Props = { children: ReactNode; initialUser?: User | null };
+type Props = { children: ReactNode; initialUser: User };
 
-export function UserProvider({ children, initialUser = null }: Props) {
+export function UserProvider({ children, initialUser }: Props) {
   const {
     data: user,
     isLoading,
