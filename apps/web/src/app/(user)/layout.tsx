@@ -1,4 +1,5 @@
 import { Separator } from '@workspace/ui/components/separator';
+import { redirect } from 'next/navigation';
 import React from 'react';
 
 import Header from '@/components/Header';
@@ -11,6 +12,10 @@ const Layout = async ({
   children: React.ReactNode;
 }>) => {
   const user = await getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
 
   return (
     <UserProvider initialUser={user}>
