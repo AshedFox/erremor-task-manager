@@ -2,7 +2,7 @@ import 'server-only';
 
 import { cookies } from 'next/headers';
 
-import { ACCESS_TOKEN_COOKIE_KEY, APP_BASE_URL } from '@/constants/env';
+import { ACCESS_TOKEN_COOKIE_KEY, API_BASE_URL } from '@/constants/env';
 import { User } from '@/types/user';
 
 export async function getUser() {
@@ -12,7 +12,7 @@ export async function getUser() {
     return null;
   }
 
-  const res = await fetch(`${APP_BASE_URL}/api/proxy/users/me`, {
+  const res = await fetch(`${API_BASE_URL}/users/me`, {
     method: 'GET',
     headers: { Authorization: `Bearer ${accessToken}` },
   });
