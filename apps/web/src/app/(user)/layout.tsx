@@ -3,24 +3,20 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@workspace/ui/components/sidebar';
-import { redirect } from 'next/navigation';
 import React from 'react';
 
 import AppSidebar from '@/components/AppSidebar';
 import Header from '@/components/Header';
 import { UserProvider } from '@/features/auth/UserContext';
-import { getUser } from '@/lib/get-user.server';
+import { apiFetch } from '@/lib/api-fetch.server';
+import { User } from '@/types/user';
 
 const Layout = async ({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) => {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const user = await apiFetch<User>('/users/me');
 
   return (
     <UserProvider initialUser={user}>
