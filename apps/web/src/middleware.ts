@@ -1,7 +1,10 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { ACCESS_TOKEN_COOKIE_KEY } from './constants/env';
+import {
+  ACCESS_TOKEN_COOKIE_KEY,
+  REFRESH_TOKEN_COOKIE_KEY,
+} from './constants/env';
 
 const protectedPaths = ['/projects', '/profile'];
 const guestOnlyRoutes = ['/login', '/register'];
@@ -16,26 +19,29 @@ function isGuestOnlyPath(pathname: string) {
 
 export async function middleware(req: NextRequest) {
   const accessToken = req.cookies.get(ACCESS_TOKEN_COOKIE_KEY)?.value;
+  const refreshToken = req.cookies.get(REFRESH_TOKEN_COOKIE_KEY)?.value;
   const { pathname, search, basePath, origin } = req.nextUrl;
 
-  if (isProtectedPath(pathname) && !accessToken) {
+  if (!accessToken && !!refreshToken) {
     const refreshRes = await fetch(new URL(`/api/auth/refresh`, origin), {
       method: 'POST',
       headers: { Cookie: req.headers.get('cookie') ?? '' },
       credentials: 'include',
     });
 
-    if (!refreshRes.ok) {
-      const redirectUrl = new URL(`/login`, origin);
-      redirectUrl.searchParams.set('from', `${basePath}${pathname}${search}`);
-      return NextResponse.redirect(redirectUrl);
+    const res = NextResponse.redirect(req.nextUrl);
+    if (refreshRes.ok) {
+      res.headers.set('set-cookie', refreshRes.headers.get('set-cookie') ?? '');
+    } else {
+      res.cookies.delete(REFRESH_TOKEN_COOKIE_KEY);
     }
+    return res;
+  }
 
-    return NextResponse.redirect(req.nextUrl, {
-      headers: {
-        'set-cookie': refreshRes.headers.get('set-cookie') || '',
-      },
-    });
+  if (isProtectedPath(pathname) && !accessToken) {
+    const redirectUrl = new URL(`/login`, origin);
+    redirectUrl.searchParams.set('from', `${basePath}${pathname}${search}`);
+    return NextResponse.redirect(redirectUrl);
   } else if (isGuestOnlyPath(pathname) && !!accessToken) {
     return NextResponse.redirect(new URL('/projects', origin));
   }
