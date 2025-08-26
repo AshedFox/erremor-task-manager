@@ -4,6 +4,7 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
+import { ProjectModule } from './project/project.module';
 import { UserModule } from './user/user.module';
 import { UsernameGeneratorModule } from './username-generator/username-generator.module';
 
@@ -21,6 +22,7 @@ import { UsernameGeneratorModule } from './username-generator/username-generator
     UsernameGeneratorModule,
     EmailModule,
     UserModule,
+    ProjectModule,
   ],
   controllers: [],
   providers: [],
