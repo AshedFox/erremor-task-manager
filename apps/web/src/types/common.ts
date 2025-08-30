@@ -8,3 +8,10 @@ export type UnionToIntersection<U> = (
 ) extends (k: infer I) => void
   ? I
   : never;
+
+export type FetchResult<T> =
+  | {
+      data: T;
+      error: null;
+    }
+  | { data: null; error: Error };

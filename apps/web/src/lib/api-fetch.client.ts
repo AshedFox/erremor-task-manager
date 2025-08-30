@@ -1,23 +1,15 @@
-import 'server-only';
+'use client';
 
-import { cookies } from 'next/headers';
-
-import { ACCESS_TOKEN_COOKIE_KEY, API_BASE_URL } from '@/constants/env';
 import { FetchResult } from '@/types/common';
 
 export async function apiFetchSafe<T = unknown>(
   path: string,
   init?: RequestInit
 ): Promise<FetchResult<T>> {
-  const accessToken = (await cookies()).get(ACCESS_TOKEN_COOKIE_KEY)?.value;
-
   try {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await fetch(`/api/proxy${path}`, {
       ...init,
-      headers: {
-        ...init?.headers,
-        Authorization: `Bearer ${accessToken}`,
-      },
+      credentials: 'include',
     });
 
     if (!res.ok) {
