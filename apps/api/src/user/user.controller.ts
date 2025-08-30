@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { OffsetPaginationDto } from '@/common/pagination';
 
 import { SearchUsersFilterDto } from './dto/search-users-filter.dto';
+import { SearchUsersSortDto } from './dto/search-users-sort.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersIncludeDto } from './dto/users-include.dto';
 import { SafeUser } from './types/user.types';
@@ -29,11 +30,13 @@ export class UserController {
   search(
     @Query() pagination: OffsetPaginationDto,
     @Query() filter: SearchUsersFilterDto,
+    @Query() sort: SearchUsersSortDto,
     @Query() include: UsersIncludeDto
   ) {
     return this.userService.search(
       { skip: pagination.skip, take: pagination.take },
       filter,
+      sort,
       include
     );
   }

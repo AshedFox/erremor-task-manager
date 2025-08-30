@@ -17,6 +17,7 @@ import { UsernameGeneratorService } from '@/username-generator/username-generato
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { SearchUsersFilterDto } from './dto/search-users-filter.dto';
+import { SearchUsersSortDto } from './dto/search-users-sort.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SafeUser } from './types/user.types';
 
@@ -70,6 +71,7 @@ export class UserService {
   async search(
     pagination: OffsetPagination,
     filter: SearchUsersFilterDto,
+    sort: SearchUsersSortDto,
     { include }: Include<Prisma.UserInclude>
   ): Promise<SafeUser[]> {
     const prismaInclude = mapInclude(include);
@@ -82,6 +84,7 @@ export class UserService {
     return this.prisma.user.findMany({
       ...pagination,
       where,
+      orderBy: sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined,
       include: prismaInclude,
     });
   }
