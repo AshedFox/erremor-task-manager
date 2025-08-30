@@ -19,6 +19,7 @@ import { ProjectRole } from './decorators/project-roles.decorator';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectsIncludeDto } from './dto/projects-include.dto';
 import { SearchProjectsFilterDto } from './dto/search-projects-filter.dto';
+import { SearchProjectsResponseDto } from './dto/search-projects-response.dto';
 import { SearchProjectsSortDto } from './dto/search-projects-sort.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectRolesGuard } from './guards/project-roles.guard';
@@ -38,19 +39,21 @@ export class ProjectController {
   }
 
   @Get()
-  search(
+  async search(
     @CurrentUser('sub') userId: string,
     @Query() pagination: OffsetPaginationDto,
     @Query() filter: SearchProjectsFilterDto,
     @Query() sort: SearchProjectsSortDto,
     @Query() include: ProjectsIncludeDto
-  ) {
-    return this.projectService.search(
+  ): Promise<SearchProjectsResponseDto> {
+    const [projects, count] = await this.projectService.search(
       { skip: pagination.skip, take: pagination.take },
       { ...filter, userId },
       sort,
       include
     );
+
+    return { nodes: projects, totalCount: count };
   }
 
   @UseGuards(ProjectRolesGuard)

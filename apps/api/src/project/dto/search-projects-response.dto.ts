@@ -1,6 +1,6 @@
-import { ProjectWithRelations } from '../types/project.types';
+import { Project } from '@prisma/client';
 
 export class SearchProjectsResponseDto {
-  nodes!: ProjectWithRelations[];
+  nodes!: Project[];
   totalCount!: number;
 }

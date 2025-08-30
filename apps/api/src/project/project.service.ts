@@ -9,6 +9,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import {
   CreateProjectParams,
   FindManyProjectsFilter,
+  FindManyProjectsResult,
   UpdateProjectParams,
 } from './types/project.types';
 
@@ -36,7 +37,7 @@ export class ProjectService {
     filter: FindManyProjectsFilter,
     sort: Sort<Project>,
     { include }: Include<Prisma.ProjectInclude>
-  ): Promise<Project[]> {
+  ): Promise<FindManyProjectsResult> {
     const prismaInclude = mapInclude(include);
     const { search, userId, ...restFilter } = filter;
     const where = {
@@ -55,12 +56,15 @@ export class ProjectService {
       ...restFilter,
     } satisfies Prisma.ProjectWhereInput;
 
-    return this.prisma.project.findMany({
-      ...pagination,
-      where,
-      orderBy: sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined,
-      include: prismaInclude,
-    });
+    return this.prisma.$transaction([
+      this.prisma.project.findMany({
+        ...pagination,
+        where,
+        orderBy: sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined,
+        include: prismaInclude,
+      }),
+      this.prisma.project.count({ where }),
+    ]);
   }
 
   async findOne(id: string): Promise<Project> {
