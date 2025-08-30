@@ -34,7 +34,7 @@ export class ProjectController {
   create(
     @Body() createProjectDto: CreateProjectDto,
     @CurrentUser('sub') creatorId: string
-  ) {
+  ): Promise<Project> {
     return this.projectService.create({ ...createProjectDto, creatorId });
   }
 
@@ -72,14 +72,14 @@ export class ProjectController {
   update(
     @Param('projectId') id: string,
     @Body() updateProjectDto: UpdateProjectDto
-  ) {
+  ): Promise<Project> {
     return this.projectService.update(id, updateProjectDto);
   }
 
   @UseGuards(ProjectRolesGuard)
   @ProjectRole(ParticipantRole.OWNER)
   @Delete(':projectId')
-  remove(@Param('projectId') id: string) {
+  remove(@Param('projectId') id: string): Promise<Project> {
     return this.projectService.remove(id);
   }
 }
