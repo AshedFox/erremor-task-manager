@@ -5,17 +5,21 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import argon2 from 'argon2';
 
 import { PasswordService } from '@/auth/password.service';
+import { Include, mapInclude } from '@/common/include';
+import { OffsetPagination } from '@/common/pagination';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsernameGeneratorService } from '@/username-generator/username-generator.service';
 
 import { CreateUserDto } from './dto/create-user.dto';
+import { SearchUsersFilterDto } from './dto/search-users-filter.dto';
+import { SearchUsersSortDto } from './dto/search-users-sort.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { SafeUser } from './types/user.types';
+import { FindManyUsersResult, SafeUser } from './types/user.types';
 
 @Injectable()
 export class UserService {
@@ -64,8 +68,28 @@ export class UserService {
     throw new InternalServerErrorException('Failed to create user!');
   }
 
-  async findAll(): Promise<SafeUser[]> {
-    return this.prisma.user.findMany();
+  async search(
+    pagination: OffsetPagination,
+    filter: SearchUsersFilterDto,
+    sort: SearchUsersSortDto,
+    { include }: Include<Prisma.UserInclude>
+  ): Promise<FindManyUsersResult> {
+    const prismaInclude = mapInclude(include);
+    const { search, ...restFilter } = filter;
+    const where = {
+      username: search ? { contains: search, mode: 'insensitive' } : undefined,
+      ...restFilter,
+    } satisfies Prisma.UserWhereInput;
+
+    return this.prisma.$transaction([
+      this.prisma.user.findMany({
+        ...pagination,
+        where,
+        orderBy: sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined,
+        include: prismaInclude,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
   }
 
   async findOneById(id: string): Promise<SafeUser> {
