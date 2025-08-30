@@ -7,8 +7,8 @@ export class OffsetPaginationDto implements OffsetPagination {
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  @Min(1)
-  page: number = 1;
+  @Min(0)
+  page: number = 0;
 
   @IsOptional()
   @Type(() => Number)
@@ -18,7 +18,7 @@ export class OffsetPaginationDto implements OffsetPagination {
   limit: number = 20;
 
   get skip(): number {
-    return (this.page - 1) * this.limit;
+    return this.page * this.limit;
   }
 
   get take(): number {
