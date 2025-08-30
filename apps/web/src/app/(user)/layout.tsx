@@ -13,8 +13,10 @@ import { User } from '@/types/user';
 
 const Layout = async ({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) => {
   const user = await apiFetch<User>('/users/me');
 
@@ -26,6 +28,7 @@ const Layout = async ({
           <Header />
           <Separator />
           {children}
+          {modal}
         </SidebarInset>
       </SidebarProvider>
     </UserProvider>
