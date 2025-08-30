@@ -17,13 +17,14 @@ export class ProjectService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(data: CreateProjectParams): Promise<Project> {
+    const { creatorId, ...rest } = data;
     return this.prisma.project.create({
       data: {
-        ...data,
+        ...rest,
         participants: {
           create: {
             role: ParticipantRole.OWNER,
-            userId: data.creatorId,
+            userId: creatorId,
           },
         },
       },
