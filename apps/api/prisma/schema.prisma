@@ -19,7 +19,7 @@ model User {
   email        String               @unique @db.VarChar(255)
   passwordHash String               @db.VarChar
   status       AccountStatus        @default(PENDING)
-  displayName  String?              @db.VarChar(64)
+  displayName  String               @db.VarChar(64)
   username     String               @unique @db.VarChar(32)
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
