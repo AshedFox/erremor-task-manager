@@ -7,6 +7,19 @@ import {
 
 export const PROJECT_STATUSES = ['OPEN', 'ARCHIVED', 'FREEZED'] as const;
 
+export const PROJECT_COLORS = [
+  '#EF4444', // red
+  '#F97316', // orange
+  '#F59E0B', // amber
+  '#EAB308', // yellow
+  '#10B981', // emerald
+  '#06B6D4', // teal
+  '#3B82F6', // blue
+  '#6366F1', // indigo
+  '#A78BFA', // purple
+  '#F472B6', // pink
+] as const;
+
 export const PROJECT_SORT = [
   'AZ_ASC',
   'AZ_DESC',
@@ -34,3 +47,5 @@ export const PROJECT_SORT_PARAMS: Record<
   CREATED_ASC: { sortBy: 'createdAt', sortOrder: 'asc' },
   CREATED_DESC: { sortBy: 'createdAt', sortOrder: 'desc' },
 } as const;
+
+export const PROJECTS_PAGE_SIZE = 1;
