@@ -43,6 +43,10 @@ export class UserService {
             email,
             passwordHash,
             username,
+            displayName: username
+              .split('-')
+              .map((part) => part[0]?.toUpperCase() + part.slice(1))
+              .join(),
           },
         });
       } catch (error) {
