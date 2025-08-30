@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { OffsetPaginationDto } from '@/common/pagination';
 
 import { SearchUsersFilterDto } from './dto/search-users-filter.dto';
+import { SearchUsersResponseDto } from './dto/search-users-response.dto';
 import { SearchUsersSortDto } from './dto/search-users-sort.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UsersIncludeDto } from './dto/users-include.dto';
@@ -27,18 +28,20 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  search(
+  async search(
     @Query() pagination: OffsetPaginationDto,
     @Query() filter: SearchUsersFilterDto,
     @Query() sort: SearchUsersSortDto,
     @Query() include: UsersIncludeDto
-  ) {
-    return this.userService.search(
+  ): Promise<SearchUsersResponseDto> {
+    const [nodes, totalCount] = await this.userService.search(
       { skip: pagination.skip, take: pagination.take },
       filter,
       sort,
       include
     );
+
+    return { nodes, totalCount };
   }
 
   @Get('me')
@@ -61,7 +64,6 @@ export class UserController {
 
   @Get(':id')
   findOne(@Param(ParseUUIDPipe) id: string): Promise<SafeUser> {
-    console.log('try to find me :)');
     return this.userService.findOneById(id);
   }
 }

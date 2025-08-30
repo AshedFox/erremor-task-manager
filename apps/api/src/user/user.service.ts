@@ -19,7 +19,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { SearchUsersFilterDto } from './dto/search-users-filter.dto';
 import { SearchUsersSortDto } from './dto/search-users-sort.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { SafeUser } from './types/user.types';
+import { FindManyUsersResult, SafeUser } from './types/user.types';
 
 @Injectable()
 export class UserService {
@@ -73,7 +73,7 @@ export class UserService {
     filter: SearchUsersFilterDto,
     sort: SearchUsersSortDto,
     { include }: Include<Prisma.UserInclude>
-  ): Promise<SafeUser[]> {
+  ): Promise<FindManyUsersResult> {
     const prismaInclude = mapInclude(include);
     const { search, ...restFilter } = filter;
     const where = {
@@ -81,12 +81,15 @@ export class UserService {
       ...restFilter,
     } satisfies Prisma.UserWhereInput;
 
-    return this.prisma.user.findMany({
-      ...pagination,
-      where,
-      orderBy: sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined,
-      include: prismaInclude,
-    });
+    return this.prisma.$transaction([
+      this.prisma.user.findMany({
+        ...pagination,
+        where,
+        orderBy: sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined,
+        include: prismaInclude,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
   }
 
   async findOneById(id: string): Promise<SafeUser> {
