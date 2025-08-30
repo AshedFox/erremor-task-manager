@@ -9,6 +9,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 import {
   CreateProjectParams,
   FindManyProjectsFilter,
+  FindManyProjectsResult,
   UpdateProjectParams,
 } from './types/project.types';
 
@@ -17,13 +18,14 @@ export class ProjectService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(data: CreateProjectParams): Promise<Project> {
+    const { creatorId, ...rest } = data;
     return this.prisma.project.create({
       data: {
-        ...data,
+        ...rest,
         participants: {
           create: {
             role: ParticipantRole.OWNER,
-            userId: data.creatorId,
+            userId: creatorId,
           },
         },
       },
@@ -35,7 +37,7 @@ export class ProjectService {
     filter: FindManyProjectsFilter,
     sort: Sort<Project>,
     { include }: Include<Prisma.ProjectInclude>
-  ): Promise<Project[]> {
+  ): Promise<FindManyProjectsResult> {
     const prismaInclude = mapInclude(include);
     const { search, userId, ...restFilter } = filter;
     const where = {
@@ -54,16 +56,26 @@ export class ProjectService {
       ...restFilter,
     } satisfies Prisma.ProjectWhereInput;
 
-    return this.prisma.project.findMany({
-      ...pagination,
-      where,
-      orderBy: sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined,
-      include: prismaInclude,
-    });
+    return this.prisma.$transaction([
+      this.prisma.project.findMany({
+        ...pagination,
+        where,
+        orderBy: sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined,
+        include: prismaInclude,
+      }),
+      this.prisma.project.count({ where }),
+    ]);
   }
 
-  async findOne(id: string): Promise<Project> {
-    const project = await this.prisma.project.findUnique({ where: { id } });
+  async findOne(
+    id: string,
+    { include }: Include<Prisma.ProjectInclude>
+  ): Promise<Project> {
+    const prismaInclude = mapInclude(include);
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: prismaInclude,
+    });
 
     if (!project) {
       throw new NotFoundException('Project not found!');

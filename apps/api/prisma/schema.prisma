@@ -23,10 +23,9 @@ model User {
   username     String               @unique @db.VarChar(32)
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
-  birthDate    DateTime?
-  ownProjects  Project[]
-  projects     ProjectParticipant[]
+  birthDate    DateTime?            @db.Date
   tasks        Task[]
+  projects     ProjectParticipant[]
 }
 
 enum TaskStatus {
@@ -90,8 +89,6 @@ model Project {
   updatedAt    DateTime             @updatedAt
   color        String?              @db.VarChar(48)
   status       ProjectStatus        @default(OPEN)
-  creatorId    String               @db.Uuid
-  creator      User                 @relation(fields: [creatorId], references: [id])
   tasks        Task[]
   participants ProjectParticipant[]
 }

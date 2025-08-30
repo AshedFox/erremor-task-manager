@@ -1,4 +1,4 @@
-import { Prisma, Project } from '@prisma/client';
+import { Project } from '@prisma/client';
 
 import { CreateProjectDto } from '../dto/create-project.dto';
 import { SearchProjectsFilterDto } from '../dto/search-projects-filter.dto';
@@ -9,13 +9,4 @@ export type UpdateProjectParams = UpdateProjectDto;
 export type FindManyProjectsFilter = SearchProjectsFilterDto & {
   userId: string;
 };
-export type ProjectWithRelations = Project &
-  Partial<
-    Prisma.ProjectGetPayload<{
-      include: {
-        creator: true;
-        participants: true;
-        tasks: true;
-      };
-    }>
-  >;
+export type FindManyProjectsResult = [Project[], number];
