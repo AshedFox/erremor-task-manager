@@ -67,8 +67,15 @@ export class ProjectService {
     ]);
   }
 
-  async findOne(id: string): Promise<Project> {
-    const project = await this.prisma.project.findUnique({ where: { id } });
+  async findOne(
+    id: string,
+    { include }: Include<Prisma.ProjectInclude>
+  ): Promise<Project> {
+    const prismaInclude = mapInclude(include);
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+      include: prismaInclude,
+    });
 
     if (!project) {
       throw new NotFoundException('Project not found!');

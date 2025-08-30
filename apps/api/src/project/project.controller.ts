@@ -9,7 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ParticipantRole } from '@prisma/client';
+import { ParticipantRole, Project } from '@prisma/client';
 
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -59,8 +59,11 @@ export class ProjectController {
   @UseGuards(ProjectRolesGuard)
   @ProjectRole(ParticipantRole.GUEST)
   @Get(':projectId')
-  findOne(@Param('projectId') id: string) {
-    return this.projectService.findOne(id);
+  findOne(
+    @Param('projectId') id: string,
+    @Query() include: ProjectsIncludeDto
+  ): Promise<Project> {
+    return this.projectService.findOne(id, include);
   }
 
   @UseGuards(ProjectRolesGuard)
