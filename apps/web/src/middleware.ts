@@ -21,6 +21,11 @@ export async function middleware(req: NextRequest) {
   const accessToken = req.cookies.get(ACCESS_TOKEN_COOKIE_KEY)?.value;
   const refreshToken = req.cookies.get(REFRESH_TOKEN_COOKIE_KEY)?.value;
   const { pathname, search, basePath, origin } = req.nextUrl;
+  const isAction = req.method === 'POST' && req.headers.has('Next-Action');
+
+  if (isAction) {
+    return NextResponse.next();
+  }
 
   if (!accessToken && !!refreshToken) {
     const refreshRes = await fetch(new URL(`/api/auth/refresh`, origin), {
