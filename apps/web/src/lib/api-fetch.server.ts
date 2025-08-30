@@ -3,13 +3,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 
 import { ACCESS_TOKEN_COOKIE_KEY, API_BASE_URL } from '@/constants/env';
-
-type FetchResult<T> =
-  | {
-      data: T;
-      error: null;
-    }
-  | { data: null; error: Error };
+import { FetchResult } from '@/types/common';
 
 export async function apiFetchSafe<T = unknown>(
   path: string,
