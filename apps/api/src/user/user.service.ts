@@ -5,15 +5,18 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import argon2 from 'argon2';
 
 import { PasswordService } from '@/auth/password.service';
+import { Include, mapInclude } from '@/common/include';
+import { OffsetPagination } from '@/common/pagination';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsernameGeneratorService } from '@/username-generator/username-generator.service';
 
 import { CreateUserDto } from './dto/create-user.dto';
+import { SearchUsersFilterDto } from './dto/search-users-filter.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SafeUser } from './types/user.types';
 
@@ -64,8 +67,23 @@ export class UserService {
     throw new InternalServerErrorException('Failed to create user!');
   }
 
-  async findAll(): Promise<SafeUser[]> {
-    return this.prisma.user.findMany();
+  async search(
+    pagination: OffsetPagination,
+    filter: SearchUsersFilterDto,
+    { include }: Include<Prisma.UserInclude>
+  ): Promise<SafeUser[]> {
+    const prismaInclude = mapInclude(include);
+    const { search, ...restFilter } = filter;
+    const where = {
+      username: search ? { contains: search, mode: 'insensitive' } : undefined,
+      ...restFilter,
+    } satisfies Prisma.UserWhereInput;
+
+    return this.prisma.user.findMany({
+      ...pagination,
+      where,
+      include: prismaInclude,
+    });
   }
 
   async findOneById(id: string): Promise<SafeUser> {
