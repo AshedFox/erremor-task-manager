@@ -17,7 +17,7 @@ const SearchBar = ({ className }: Props) => {
   const router = useRouter();
 
   const [query, setQuery] = useState(searchParams.get('search') ?? '');
-  const deboucedQuery = useDebounce(query, 500);
+  const debouncedQuery = useDebounce(query, 500);
 
   useEffect(() => {
     setQuery(searchParams.get('search') ?? '');
@@ -25,13 +25,13 @@ const SearchBar = ({ className }: Props) => {
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
-    if (deboucedQuery) {
-      params.set('search', deboucedQuery);
+    if (debouncedQuery) {
+      params.set('search', debouncedQuery);
     } else {
       params.delete('search');
     }
     router.push(`?${params.toString()}`);
-  }, [deboucedQuery, router, searchParams]);
+  }, [debouncedQuery, router, searchParams]);
 
   return (
     <div className={cn('relative', className)}>
