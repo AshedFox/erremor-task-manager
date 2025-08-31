@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { AccountStatus, Prisma, User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import argon2 from 'argon2';
 
@@ -94,6 +94,35 @@ export class UserService {
       }),
       this.prisma.user.count({ where }),
     ]);
+  }
+
+  async findAvailableForProject(
+    projectId: string,
+    pagination: OffsetPagination,
+    filter: SearchUsersFilterDto,
+    { include }: Include<Prisma.UserInclude>
+  ) {
+    const prismaInclude = mapInclude(include);
+    const { search, ...restFilter } = filter;
+    const where = {
+      username: search ? { contains: search, mode: 'insensitive' } : undefined,
+      ...restFilter,
+    } satisfies Prisma.UserWhereInput;
+
+    return this.prisma.user.findMany({
+      ...pagination,
+      where: {
+        ...where,
+        status: AccountStatus.ACTIVE,
+        projects: {
+          none: { projectId },
+        },
+        invitations: {
+          none: { projectId },
+        },
+      },
+      include: prismaInclude,
+    });
   }
 
   async findOneById(id: string): Promise<SafeUser> {
