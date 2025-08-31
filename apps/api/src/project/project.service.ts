@@ -1,5 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { ParticipantRole, Prisma, Project } from '@prisma/client';
+import {
+  ParticipantRole,
+  ParticipantStatus,
+  Prisma,
+  Project,
+} from '@prisma/client';
 
 import { Include, mapInclude } from '@/common/include';
 import { OffsetPagination } from '@/common/pagination';
@@ -24,6 +29,7 @@ export class ProjectService {
         ...rest,
         participants: {
           create: {
+            status: ParticipantStatus.JOINED,
             role: ParticipantRole.OWNER,
             userId: creatorId,
           },

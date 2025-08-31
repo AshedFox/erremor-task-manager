@@ -5,7 +5,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ParticipantRole } from '@prisma/client';
+import { ParticipantRole, ParticipantStatus } from '@prisma/client';
 import { Request } from 'express';
 
 import { PrismaService } from '@/prisma/prisma.service';
@@ -46,6 +46,7 @@ export class ProjectRolesGuard implements CanActivate {
     const participant = await this.prisma.projectParticipant.findUnique({
       where: {
         projectId_userId: { userId, projectId },
+        status: ParticipantStatus.JOINED,
       },
     });
 
