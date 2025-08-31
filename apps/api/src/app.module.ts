@@ -7,6 +7,7 @@ import { EmailModule } from './email/email.module';
 import { ProjectModule } from './project/project.module';
 import { ProjectInvitationModule } from './project-invitation/project-invitation.module';
 import { ProjectParticipantModule } from './project-participant/project-participant.module';
+import { TaskModule } from './task/task.module';
 import { UserModule } from './user/user.module';
 import { UsernameGeneratorModule } from './username-generator/username-generator.module';
 
@@ -24,6 +25,7 @@ import { UsernameGeneratorModule } from './username-generator/username-generator
     UsernameGeneratorModule,
     EmailModule,
     UserModule,
+    TaskModule,
     ProjectModule,
     ProjectParticipantModule,
     ProjectInvitationModule,

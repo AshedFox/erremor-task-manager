@@ -14,6 +14,11 @@ import { ParticipantRole, Project } from '@prisma/client';
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { OffsetPaginationDto } from '@/common/pagination/dto';
+import { SearchTasksFilterDto } from '@/task/dto/search-tasks-filter.dto';
+import { SearchTasksResponseDto } from '@/task/dto/search-tasks-response.dto';
+import { SearchTasksSortDto } from '@/task/dto/search-tasks-sort.dto';
+import { TaskIncludeDto } from '@/task/dto/task-include.dto';
+import { TaskService } from '@/task/task.service';
 
 import { ProjectRole } from './decorators/project-roles.decorator';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -28,7 +33,10 @@ import { ProjectService } from './project.service';
 @UseGuards(JwtAuthGuard)
 @Controller('projects')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(
+    private readonly projectService: ProjectService,
+    private readonly taskService: TaskService
+  ) {}
 
   @Post()
   create(
@@ -64,6 +72,26 @@ export class ProjectController {
     @Query() include: ProjectsIncludeDto
   ): Promise<Project> {
     return this.projectService.findOne(id, include);
+  }
+
+  @UseGuards(ProjectRolesGuard)
+  @ProjectRole(ParticipantRole.GUEST)
+  @Get(':projectId/users')
+  async searchProjectTasks(
+    @Param('projectId') projectId: string,
+    @Query() pagination: OffsetPaginationDto,
+    @Query() filter: SearchTasksFilterDto,
+    @Query() sort: SearchTasksSortDto,
+    @Query() include: TaskIncludeDto
+  ): Promise<SearchTasksResponseDto> {
+    const [nodes, totalCount] = await this.taskService.search(
+      { skip: pagination.skip, take: pagination.take },
+      { ...filter, projectId },
+      sort,
+      include
+    );
+
+    return { nodes, totalCount };
   }
 
   @UseGuards(ProjectRolesGuard)
