@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, Task } from '@prisma/client';
 
 import { Include, mapInclude } from '@/common/include';
-import { OffsetPagination } from '@/common/pagination';
+import { Pagination } from '@/common/pagination';
 import { Sort } from '@/common/sort';
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -35,7 +35,7 @@ export class TaskService {
   }
 
   async search(
-    pagination: OffsetPagination,
+    pagination: Pagination,
     filter: SearchTasksFilterDto,
     sort: Sort<Task>,
     { include }: Include<Prisma.TaskInclude>
@@ -58,11 +58,18 @@ export class TaskService {
       ...restFilter,
     } satisfies Prisma.TaskWhereInput;
 
+    const orderBy = {
+      ...(sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined),
+      ...(pagination.cursor ? { id: 'asc' } : undefined),
+    } satisfies Prisma.TaskOrderByWithAggregationInput;
+
     return this.prisma.$transaction([
       this.prisma.task.findMany({
-        ...pagination,
+        take: pagination.take,
+        cursor: pagination.cursor ? { id: pagination.cursor } : undefined,
+        skip: pagination.skip !== undefined ? pagination.skip : undefined,
         where: where,
-        orderBy: sort.sortBy ? { [sort.sortBy]: sort.sortOrder } : undefined,
+        orderBy,
         include: prismaInclude,
       }),
       this.prisma.task.count({ where }),
