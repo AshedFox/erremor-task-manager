@@ -47,7 +47,7 @@ export class TaskController {
     @Query() sort: SearchTasksSortDto,
     @Query() include: TaskIncludeDto
   ): Promise<Paginated<Task>> {
-    if (pagination.skip !== undefined) {
+    if (pagination.page !== undefined) {
       const [items, totalCount] = await this.taskService.search(
         { skip: pagination.skip, take: pagination.take },
         filter,
