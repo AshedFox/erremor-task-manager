@@ -76,7 +76,7 @@ export class ProjectController {
 
   @UseGuards(ProjectRolesGuard)
   @ProjectRole(ParticipantRole.GUEST)
-  @Get(':projectId/users')
+  @Get(':projectId/tasks')
   async searchProjectTasks(
     @Param('projectId') projectId: string,
     @Query() pagination: OffsetPaginationDto,
