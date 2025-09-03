@@ -15,3 +15,17 @@ export type FetchResult<T> =
       error: null;
     }
   | { data: null; error: Error };
+
+export type Paginated<T> = {
+  data: T[];
+  meta: PaginationMeta;
+};
+
+export type PaginationMeta = {
+  totalCount?: number;
+  limit: number;
+  currentPage?: number;
+  totalPages?: number;
+  hasNext: boolean;
+  nextCursor?: string;
+};
