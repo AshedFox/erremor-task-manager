@@ -3,7 +3,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   ArrayUnique,
-  IsDateString,
+  IsDate,
   IsEnum,
   IsOptional,
   IsString,
@@ -26,7 +26,7 @@ export class CreateTaskDto {
   description?: string;
 
   @Type(() => Date)
-  @IsDateString()
+  @IsDate()
   @IsOptional()
   deadline?: Date;
 
