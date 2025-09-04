@@ -30,7 +30,11 @@ async function handleProxy(req: NextRequest, path: string[]) {
   const url = `${API_BASE_URL}/${path.join('/')}${req.nextUrl.search}`;
   const accessToken = (await cookies()).get(ACCESS_TOKEN_COOKIE_KEY)?.value;
 
-  let res = await forwardRequest(req, url, accessToken);
+  const body =
+    req.method === 'GET' || req.method === 'HEAD'
+      ? undefined
+      : await req.text();
+  let res = await forwardRequest(req, url, accessToken, body);
 
   if (res.status === 401) {
     if (!refreshPromise) {
@@ -47,7 +51,7 @@ async function handleProxy(req: NextRequest, path: string[]) {
       const newAccessToken = new ResponseCookies(
         new Headers(refreshRes.headers)
       ).get(ACCESS_TOKEN_COOKIE_KEY)?.value;
-      res = await forwardRequest(req, url, newAccessToken);
+      res = await forwardRequest(req, url, newAccessToken, body);
     }
     res.headers.append(
       'set-cookie',
@@ -61,7 +65,8 @@ async function handleProxy(req: NextRequest, path: string[]) {
 async function forwardRequest(
   req: NextRequest,
   url: string,
-  accessToken?: string
+  accessToken?: string,
+  body?: string
 ) {
   const headers = new Headers(req.headers);
 
@@ -71,11 +76,6 @@ async function forwardRequest(
   if (accessToken) {
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
-
-  const body =
-    req.method === 'GET' || req.method === 'HEAD'
-      ? undefined
-      : await req.text();
 
   const upstream = await fetch(url, {
     method: req.method,
