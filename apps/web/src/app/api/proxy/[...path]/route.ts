@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { ACCESS_TOKEN_COOKIE_KEY, API_BASE_URL } from '@/constants/env';
 
+let refreshPromise: Promise<Response>;
+
 type Context = {
   params: Promise<{ path: string[] }>;
 };
@@ -31,12 +33,15 @@ async function handleProxy(req: NextRequest, path: string[]) {
   let res = await forwardRequest(req, url, accessToken);
 
   if (res.status === 401) {
-    const refreshRes = await fetch(new URL('/api/auth/refresh', req.url), {
-      method: 'POST',
-      headers: {
-        cookie: req.headers.get('cookie') || '',
-      },
-    });
+    if (!refreshPromise) {
+      refreshPromise = fetch(new URL('/api/auth/refresh', req.url), {
+        method: 'POST',
+        headers: {
+          cookie: req.headers.get('cookie') || '',
+        },
+      });
+    }
+    const refreshRes = await refreshPromise;
 
     if (refreshRes.ok) {
       const newAccessToken = new ResponseCookies(
