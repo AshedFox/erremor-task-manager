@@ -1,5 +1,7 @@
 import z from 'zod';
 
+import { TASK_PRIORITIES, TASK_STATUSES } from '@/constants/task';
+
 import { optionSchema } from './common';
 import { createTagSchema } from './tag';
 
@@ -18,3 +20,11 @@ export const createTaskFormSchema = createTaskSchema
   .extend({
     tags: z.array(optionSchema).optional(),
   });
+
+export const editTaskSchema = createTaskSchema.extend({
+  status: z.enum(TASK_STATUSES),
+});
+
+export const editTaskFormSchema = createTaskFormSchema.extend({
+  status: z.enum(TASK_STATUSES),
+});
