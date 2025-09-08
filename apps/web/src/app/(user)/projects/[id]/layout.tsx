@@ -12,7 +12,6 @@ import {
   PlusIcon,
   UserPenIcon,
 } from 'lucide-react';
-import { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import React, { ReactNode } from 'react';
@@ -21,7 +20,7 @@ import ViewModeSwitch from '@/components/ViewModeSwitch';
 import DeleteProjectDropdownItem from '@/features/project/DeleteProjectDropdownItem';
 import LeaveProjectDropdownItem from '@/features/project/LeaveProjectDropdownItem';
 import { apiFetch } from '@/lib/api-fetch.server';
-import { Project, ProjectWithInclude } from '@/types/project';
+import { ProjectWithInclude } from '@/types/project';
 import { User } from '@/types/user';
 
 type Props = {
@@ -30,18 +29,6 @@ type Props = {
     id: string;
   }>;
 };
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
-  const project = await apiFetch<Project>(
-    `/projects/${id}?include=tasks,participants`,
-    { next: { tags: [`project-${id}`] } }
-  );
-
-  return {
-    title: project.name,
-  };
-}
 
 const Layout = async ({ children, params }: Props) => {
   const { id } = await params;
