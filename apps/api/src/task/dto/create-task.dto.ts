@@ -1,7 +1,6 @@
 import { TaskPriority, TaskStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
-  ArrayNotEmpty,
   ArrayUnique,
   IsDate,
   IsEnum,
@@ -9,7 +8,10 @@ import {
   IsString,
   IsUUID,
   Length,
+  ValidateNested,
 } from 'class-validator';
+
+import { CreateTagDto } from '@/tag/dto/create-tag.dto';
 
 export class CreateTaskDto {
   @IsString()
@@ -39,7 +41,12 @@ export class CreateTaskDto {
 
   @IsOptional()
   @ArrayUnique()
-  @ArrayNotEmpty()
   @IsUUID(4, { each: true })
-  tags?: string[];
+  existingTags?: string[];
+
+  @Type(() => CreateTagDto)
+  @IsOptional()
+  @ArrayUnique((tag: CreateTagDto) => tag.name.toLowerCase())
+  @ValidateNested({ each: true })
+  newTags?: CreateTagDto[];
 }
