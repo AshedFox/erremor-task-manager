@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext } from 'react';
 
 import { User } from '@/types/user';
@@ -16,6 +17,7 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 type Props = { children: ReactNode; initialUser: User };
 
 export function UserProvider({ children, initialUser }: Props) {
+  const router = useRouter();
   const {
     data: user,
     isLoading,
@@ -27,6 +29,7 @@ export function UserProvider({ children, initialUser }: Props) {
         credentials: 'include',
       });
       if (!res.ok) {
+        router.push('/login');
         throw new Error('Failed to get user!');
       }
       return res.json();
