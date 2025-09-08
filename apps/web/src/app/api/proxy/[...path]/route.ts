@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { ACCESS_TOKEN_COOKIE_KEY, API_BASE_URL } from '@/constants/env';
 
-let refreshPromise: Promise<Response>;
+let refreshPromise: Promise<Response> | undefined;
 
 type Context = {
   params: Promise<{ path: string[] }>;
@@ -43,7 +43,7 @@ async function handleProxy(req: NextRequest, path: string[]) {
         headers: {
           cookie: req.headers.get('cookie') || '',
         },
-      });
+      }).finally(() => (refreshPromise = undefined));
     }
     const refreshRes = await refreshPromise;
 
