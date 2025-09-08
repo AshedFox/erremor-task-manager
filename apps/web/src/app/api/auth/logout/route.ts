@@ -23,8 +23,6 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  console.log(await res.text(), request.headers.get('cookie'));
-
   if (res.ok) {
     nextRes.cookies.delete(ACCESS_TOKEN_COOKIE_KEY);
   }
