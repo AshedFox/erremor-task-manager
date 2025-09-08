@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
-import { Calendar } from '@workspace/ui/components/calendar';
+import { DateTimePicker } from '@workspace/ui/components/datetime-picker';
 import {
   Form,
   FormControl,
@@ -15,11 +15,6 @@ import {
 import { Input } from '@workspace/ui/components/input';
 import MultipleSelector from '@workspace/ui/components/multiple-selector';
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@workspace/ui/components/popover';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -27,9 +22,6 @@ import {
   SelectValue,
 } from '@workspace/ui/components/select';
 import { Textarea } from '@workspace/ui/components/textarea';
-import { cn } from '@workspace/ui/lib/utils';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { useForm } from 'react-hook-form';
@@ -196,37 +188,14 @@ const CreateTaskForm = ({ onSuccess, projectId }: Props) => {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Deadline</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        'w-full pl-3 text-left font-normal',
-                        !field.value && 'text-muted-foreground'
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, 'PPP')
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto size-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-2" align="start">
-                  <Calendar
-                    size="sm"
-                    mode="single"
-                    selected={field.value}
-                    onSelect={(e) => field.onChange(e)}
-                    captionLayout="dropdown"
-                    disabled={(date) => date <= new Date()}
-                  />
-                </PopoverContent>
-              </Popover>
+              <FormControl>
+                <DateTimePicker
+                  {...field}
+                  yearRange={1}
+                  hourCycle={24}
+                  granularity="minute"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
