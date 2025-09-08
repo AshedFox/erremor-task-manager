@@ -26,6 +26,8 @@ import React from 'react';
 
 import { TaskWithInclude } from '@/types/task';
 
+import DeleteTaskDropdownItem from './DeleteTaskDropdownItem';
+
 type Props = {
   task: TaskWithInclude<'tags' | 'creator'>;
 };
@@ -56,6 +58,10 @@ const FullTaskCard = ({ task }: Props) => {
                   <PencilIcon /> Edit task
                 </Link>
               </DropdownMenuItem>
+              <DeleteTaskDropdownItem
+                taskId={task.id}
+                projectId={task.projectId}
+              />
             </DropdownMenuContent>
           </DropdownMenu>
         </CardAction>
