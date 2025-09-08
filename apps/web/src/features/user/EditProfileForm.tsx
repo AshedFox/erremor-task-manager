@@ -21,6 +21,7 @@ import {
 import { cn } from '@workspace/ui/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, EraserIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -40,6 +41,7 @@ type Props = {
 
 const EditProfileForm = ({ user, onSuccess }: Props) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const router = useRouter();
   const form = useForm({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
@@ -67,6 +69,7 @@ const EditProfileForm = ({ user, onSuccess }: Props) => {
       queryClient.invalidateQueries({
         queryKey: ['current-user'],
       });
+      router.refresh();
       onSuccess?.();
     },
   });

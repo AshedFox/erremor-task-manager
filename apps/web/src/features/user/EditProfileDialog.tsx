@@ -35,7 +35,6 @@ const EditProfileDialog = ({ user }: Props) => {
           user={user}
           onSuccess={() => {
             router.back();
-            router.refresh();
           }}
         />
       </DialogContent>
