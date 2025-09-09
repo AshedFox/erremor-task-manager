@@ -13,11 +13,6 @@ import {
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { OffsetPaginationDto } from '@/common/pagination';
-import { SearchTasksFilterDto } from '@/task/dto/search-tasks-filter.dto';
-import { SearchTasksResponseDto } from '@/task/dto/search-tasks-response.dto';
-import { SearchTasksSortDto } from '@/task/dto/search-tasks-sort.dto';
-import { TaskIncludeDto } from '@/task/dto/task-include.dto';
-import { TaskService } from '@/task/task.service';
 
 import { SearchUsersFilterDto } from './dto/search-users-filter.dto';
 import { SearchUsersResponseDto } from './dto/search-users-response.dto';
@@ -30,10 +25,7 @@ import { UserService } from './user.service';
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly taskService: TaskService
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Get()
   async search(
@@ -45,24 +37,6 @@ export class UserController {
     const [nodes, totalCount] = await this.userService.search(
       { skip: pagination.skip, take: pagination.take },
       filter,
-      sort,
-      include
-    );
-
-    return { nodes, totalCount };
-  }
-
-  @Get('me/tasks')
-  async searchMyTasks(
-    @CurrentUser('sub') creatorId: string,
-    @Query() pagination: OffsetPaginationDto,
-    @Query() filter: SearchTasksFilterDto,
-    @Query() sort: SearchTasksSortDto,
-    @Query() include: TaskIncludeDto
-  ): Promise<SearchTasksResponseDto> {
-    const [nodes, totalCount] = await this.taskService.search(
-      { skip: pagination.skip, take: pagination.take },
-      { ...filter, creatorId },
       sort,
       include
     );
