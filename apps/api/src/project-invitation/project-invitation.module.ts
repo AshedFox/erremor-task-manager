@@ -6,10 +6,11 @@ import { ProjectParticipantModule } from '@/project-participant/project-particip
 
 import { ProjectInvitationController } from './project-invitation.controller';
 import { ProjectInvitationService } from './project-invitation.service';
+import { UserInvitationController } from './user-invitation.controller';
 
 @Module({
   imports: [PrismaModule, ProjectParticipantModule, AuthModule],
-  controllers: [ProjectInvitationController],
+  controllers: [ProjectInvitationController, UserInvitationController],
   providers: [ProjectInvitationService],
   exports: [ProjectInvitationService],
 })
