@@ -9,6 +9,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
         user: {
           passwordHash: true,
         },
+        projectInvitation: {
+          tokenHash: true,
+        },
       },
     });
   }
