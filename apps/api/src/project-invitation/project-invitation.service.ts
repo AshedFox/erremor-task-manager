@@ -103,7 +103,7 @@ export class ProjectInvitationService {
     ]);
   }
 
-  findManyByUser(
+  searchByUser(
     userId: string,
     pagination: OffsetPagination,
     filter: SearchProjectInvitationsFilterDto,
