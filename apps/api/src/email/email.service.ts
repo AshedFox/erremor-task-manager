@@ -58,4 +58,30 @@ export class EmailService {
       throw new InternalServerErrorException('Failed to send email!');
     }
   }
+
+  async sendProjectInviteEmail(
+    email: string,
+    token: string,
+    projectName: string,
+    expiresAt: Date
+  ) {
+    try {
+      const invitationLink = `${this.appUrl}/invitations/accept?token=${token}`;
+
+      await this.mailerService.sendMail({
+        to: email,
+        subject: 'Accept invitation to project',
+        template: 'project-invitation',
+        context: {
+          invitationLink,
+          appName: this.appName,
+          currentYear: new Date().getFullYear(),
+          expiresAt,
+          projectName,
+        },
+      });
+    } catch {
+      throw new InternalServerErrorException('Failed to send email!');
+    }
+  }
 }
