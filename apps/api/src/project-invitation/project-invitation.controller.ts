@@ -44,14 +44,20 @@ export class ProjectInvitationController {
     });
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post(':token/accept')
-  async accept(
-    @CurrentUser('sub') currentUserId: string,
-    @Param('projectId') projectId: string,
+  @Post(':token/token-accept')
+  async acceptWithToken(
     @Param('token') token: string
   ): Promise<ProjectInvitation> {
-    return this.invitationService.accept(projectId, currentUserId, token);
+    return this.invitationService.acceptWithToken(token);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':userId/accept')
+  async accept(
+    @CurrentUser('sub') currentUserId: string,
+    @Param('projectId') projectId: string
+  ): Promise<ProjectInvitation> {
+    return this.invitationService.accept(projectId, currentUserId);
   }
 
   @UseGuards(JwtAuthGuard, ProjectRolesGuard)

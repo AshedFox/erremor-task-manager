@@ -84,11 +84,33 @@ export class ProjectInvitationService {
     });
   }
 
-  async accept(
-    projectId: string,
-    userId: string,
-    token: string
-  ): Promise<ProjectInvitation> {
+  async acceptWithToken(token: string): Promise<ProjectInvitation> {
+    return this.prisma.$transaction(async (tx) => {
+      const invitation = await tx.projectInvitation.findFirst({
+        where: {
+          tokenHash: await this.passwordService.hash(token),
+          expiresAt: { gt: new Date() },
+        },
+      });
+
+      if (!invitation) {
+        throw new NotFoundException('Invitation not found');
+      }
+
+      const { userId, projectId } = invitation;
+
+      await tx.projectParticipant.update({
+        where: { projectId_userId: { projectId, userId } },
+        data: { joinedAt: new Date() },
+      });
+
+      return tx.projectInvitation.delete({
+        where: { projectId_userId: { projectId, userId } },
+      });
+    });
+  }
+
+  async accept(projectId: string, userId: string): Promise<ProjectInvitation> {
     return this.prisma.$transaction(async (tx) => {
       const invitation = await tx.projectInvitation.findUnique({
         where: { projectId_userId: { projectId, userId } },
@@ -100,10 +122,6 @@ export class ProjectInvitationService {
 
       if (invitation.expiresAt > new Date()) {
         throw new BadRequestException('Invite expired');
-      }
-
-      if (!(await this.passwordService.verify(invitation.tokenHash, token))) {
-        throw new BadRequestException('Invalid invite');
       }
 
       await tx.projectParticipant.update({
