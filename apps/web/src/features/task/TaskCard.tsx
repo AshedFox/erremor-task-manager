@@ -24,7 +24,7 @@ const TaskCard = ({ task }: Props) => {
       className="hover:shadow-md transition-all border-border bg-card gap-3 overflow-hidden flex-1"
     >
       <CardHeader>
-        <div className="flex items-center justify-between gap-3 overflow-hidden">
+        <div className="flex flex-col md:items-center md:flex-row justify-between md:gap-3 overflow-hidden">
           <Link
             href={`/projects/${task.projectId}/tasks/${task.id}`}
             className="overflow-hidden"
