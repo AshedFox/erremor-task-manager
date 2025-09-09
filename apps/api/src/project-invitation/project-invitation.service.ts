@@ -10,8 +10,8 @@ import { PasswordService } from '@/auth/password.service';
 import { Include, mapInclude } from '@/common/include';
 import { OffsetPagination } from '@/common/pagination';
 import { Sort } from '@/common/sort';
+import { EmailService } from '@/email/email.service';
 import { PrismaService } from '@/prisma/prisma.service';
-import { ProjectParticipantService } from '@/project-participant/project-participant.service';
 
 import { SearchProjectInvitationsFilterDto } from './dto/search-project-invitations-filter.dto';
 import {
@@ -23,9 +23,9 @@ import {
 @Injectable()
 export class ProjectInvitationService {
   constructor(
-    private readonly participantService: ProjectParticipantService,
     private readonly passwordService: PasswordService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService
   ) {}
 
   async create(
@@ -35,9 +35,43 @@ export class ProjectInvitationService {
   ): Promise<ProjectInvitation> {
     const token = randomBytes(32).toString('hex');
     const tokenHash = await this.passwordService.hash(token);
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user || !project) {
+      throw new NotFoundException('User or project not found');
+    }
+
+    await this.emailService.sendProjectInviteEmail(
+      user.email,
+      token,
+      project.name,
+      data.expiresAt
+    );
 
     return this.prisma.$transaction(async (tx) => {
-      await this.participantService.create(projectId, userId, data.role, tx);
+      const participant = await tx.projectParticipant.findUnique({
+        where: { projectId_userId: { projectId, userId } },
+      });
+
+      if (!participant) {
+        await tx.projectParticipant.create({
+          data: { projectId, userId, role: data.role },
+        });
+      } else {
+        if (participant.status === 'JOINED') {
+          throw new BadRequestException('User already joined to this project');
+        }
+        await tx.projectParticipant.update({
+          data: { role: data.role, status: 'INVITED' },
+          where: {
+            projectId_userId: { projectId, userId },
+            status: { not: 'JOINED' },
+          },
+        });
+      }
 
       return tx.projectInvitation.create({
         data: {
