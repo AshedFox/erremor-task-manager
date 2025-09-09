@@ -58,7 +58,7 @@ export class ProjectService {
             },
           ]
         : undefined,
-      participants: { some: { userId } },
+      participants: { some: { userId, status: ParticipantStatus.JOINED } },
       ...restFilter,
     } satisfies Prisma.ProjectWhereInput;
 
