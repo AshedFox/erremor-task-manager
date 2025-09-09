@@ -1,6 +1,7 @@
 'use client';
 
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Badge } from '@workspace/ui/components/badge';
 import { Button } from '@workspace/ui/components/button';
 import {
@@ -9,8 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@workspace/ui/components/card';
-import { ScrollArea, ScrollBar } from '@workspace/ui/components/scroll-area';
-import React from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 
 import Draggable from '@/components/Draggable';
 import Spinner from '@/components/Spinner';
@@ -38,7 +38,45 @@ const TasksKanbanColumn = ({ projectId, status }: Props) => {
       initialPageParam: 0,
     });
 
-  const items = data?.pages.flatMap((item) => item.data);
+  const items = useMemo(
+    () => data?.pages.flatMap((item) => item.data) || [],
+    [data?.pages]
+  );
+
+  const scrollElementRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: items.length + (hasNextPage ? 1 : 0),
+    getScrollElement: () => scrollElementRef.current,
+    estimateSize: useCallback(
+      (index: number) => {
+        if (index === items.length) {
+          return 48;
+        }
+
+        return 200;
+      },
+      [items.length]
+    ),
+    overscan: 5,
+    getItemKey: useCallback(
+      (index: number) => {
+        if (index === items.length) {
+          return 'load-more-button';
+        }
+        return items[index]?.id || `item-${index}`;
+      },
+      [items]
+    ),
+  });
+
+  const virtualItems = virtualizer.getVirtualItems();
+
+  const handleLoadMore = useCallback(() => {
+    if (!isFetchingNextPage && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
     <Card
@@ -47,7 +85,7 @@ const TasksKanbanColumn = ({ projectId, status }: Props) => {
         backgroundColor: `${TASK_STATUSES_COLORS[status]}12`,
         borderColor: `${TASK_STATUSES_COLORS[status]}54`,
       }}
-      className="bg-background border-dashed border-2 min-h-48 p-4 gap-4 min-w-64 shrink-0 max-w-96 overflow-hidden"
+      className="bg-background border-dashed border-2 p-4 gap-4 shrink-0 w-64 md:w-96 overflow-hidden"
     >
       <CardHeader className="flex items-center justify-between px-0 gap-2">
         <CardTitle className="flex items-center gap-2">
@@ -64,39 +102,77 @@ const TasksKanbanColumn = ({ projectId, status }: Props) => {
         </CardTitle>
         <Badge variant="secondary">{items?.length ?? 0}</Badge>
       </CardHeader>
-      <CardContent className="flex-1 px-0">
-        {items && items.length > 0 ? (
-          <ScrollArea>
-            <div className="flex flex-col gap-2 p-1">
-              {items.map((task) => (
-                <Draggable
-                  className="flex"
-                  data={task}
-                  key={task.id}
-                  id={task.id}
-                >
-                  <TaskCard task={task} />
-                </Draggable>
-              ))}
-              {hasNextPage && (
-                <Button
-                  disabled={isFetchingNextPage}
-                  onClick={() => fetchNextPage()}
-                >
-                  {isFetchingNextPage ? (
-                    <>
-                      <Spinner />
-                      Loading...
-                    </>
-                  ) : (
-                    'Load more'
-                  )}
-                </Button>
-              )}
-            </div>
+      <CardContent className="flex flex-col flex-1 px-0">
+        {items.length > 0 ? (
+          <div
+            ref={scrollElementRef}
+            className="flex-1 basis-0 overflow-y-auto overflow-x-hidden px-1"
+          >
+            <div
+              className="relative w-full"
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
+              }}
+            >
+              {virtualItems.map((virtualItem) => {
+                const isLoadMoreButton = virtualItem.index === items.length;
 
-            <ScrollBar />
-          </ScrollArea>
+                if (isLoadMoreButton) {
+                  return (
+                    <div
+                      key={virtualItem.key}
+                      className="top-0 left-0 w-full absolute"
+                      style={{
+                        height: `${virtualItem.size}px`,
+                        transform: `translateY(${virtualItem.start}px)`,
+                      }}
+                    >
+                      <Button
+                        disabled={isFetchingNextPage}
+                        onClick={handleLoadMore}
+                      >
+                        {isFetchingNextPage ? (
+                          <>
+                            <Spinner />
+                            Loading...
+                          </>
+                        ) : (
+                          'Load more'
+                        )}
+                      </Button>
+                    </div>
+                  );
+                }
+
+                const task = items[virtualItem.index];
+
+                if (!task) {
+                  return null;
+                }
+
+                return (
+                  <div
+                    key={virtualItem.key}
+                    data-index={virtualItem.index}
+                    ref={virtualizer.measureElement}
+                    style={{
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                    className="pb-2 top-0 left-0 w-full absolute"
+                  >
+                    <Draggable
+                      className="flex-1"
+                      data={task}
+                      key={task.id}
+                      id={task.id}
+                    >
+                      <TaskCard task={task} />
+                    </Draggable>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         ) : (
           <div className="size-full flex items-center justify-center text-muted-foreground ">
             Nothing here

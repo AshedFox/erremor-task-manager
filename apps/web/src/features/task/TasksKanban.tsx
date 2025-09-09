@@ -11,7 +11,6 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ScrollArea, ScrollBar } from '@workspace/ui/components/scroll-area';
 import { cn } from '@workspace/ui/lib/utils';
 import React, { useState } from 'react';
 
@@ -105,8 +104,8 @@ const TasksKanban = ({ projectId }: Props) => {
       onDragEnd={handleDragEnd}
       sensors={sensors}
     >
-      <ScrollArea className="w-full overflow-x-auto flex-1">
-        <div className="inline-flex items-start p-4 gap-4">
+      <div className="flex flex-col flex-1">
+        <div className="flex p-4 gap-4 overflow-x-auto flex-1">
           {TASK_STATUSES.map((status) => (
             <Droppable
               className={cn(
@@ -120,8 +119,7 @@ const TasksKanban = ({ projectId }: Props) => {
             </Droppable>
           ))}
         </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      </div>
       <DragOverlay>
         {activeTask ? <TaskCard task={activeTask} /> : null}
       </DragOverlay>
