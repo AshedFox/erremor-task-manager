@@ -25,7 +25,7 @@ import { SearchProjectInvitationsSortDto } from './dto/search-project-invitation
 import { UpdateProjectInvitationDto } from './dto/update-project-invitation.dto';
 import { ProjectInvitationService } from './project-invitation.service';
 
-@Controller('projects/:projectId/invite')
+@Controller('projects/:projectId/invitations')
 export class ProjectInvitationController {
   constructor(private readonly invitationService: ProjectInvitationService) {}
 
@@ -52,7 +52,7 @@ export class ProjectInvitationController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post(':userId/accept')
+  @Post('me/accept')
   async accept(
     @CurrentUser('sub') currentUserId: string,
     @Param('projectId') projectId: string
