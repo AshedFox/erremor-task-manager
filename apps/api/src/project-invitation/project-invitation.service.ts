@@ -101,7 +101,7 @@ export class ProjectInvitationService {
 
       await tx.projectParticipant.update({
         where: { projectId_userId: { projectId, userId } },
-        data: { joinedAt: new Date() },
+        data: { joinedAt: new Date(), status: 'JOINED' },
       });
 
       return tx.projectInvitation.delete({
@@ -126,7 +126,7 @@ export class ProjectInvitationService {
 
       await tx.projectParticipant.update({
         where: { projectId_userId: { projectId, userId } },
-        data: { joinedAt: new Date() },
+        data: { joinedAt: new Date(), status: 'JOINED' },
       });
 
       return tx.projectInvitation.delete({
