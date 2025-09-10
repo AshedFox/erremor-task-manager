@@ -89,12 +89,15 @@ export class ProjectInvitationService {
       const invitation = await tx.projectInvitation.findFirst({
         where: {
           tokenHash: await this.passwordService.hash(token),
-          expiresAt: { gt: new Date() },
         },
       });
 
       if (!invitation) {
         throw new NotFoundException('Invitation not found');
+      }
+
+      if (invitation.expiresAt < new Date()) {
+        throw new BadRequestException('Invite expired');
       }
 
       const { userId, projectId } = invitation;
@@ -120,7 +123,7 @@ export class ProjectInvitationService {
         throw new NotFoundException('Invitation not found');
       }
 
-      if (invitation.expiresAt > new Date()) {
+      if (invitation.expiresAt < new Date()) {
         throw new BadRequestException('Invite expired');
       }
 
