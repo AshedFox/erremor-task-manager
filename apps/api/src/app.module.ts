@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RedisModule } from '@nestjs-modules/ioredis';
@@ -19,6 +20,14 @@ import { UsernameGeneratorModule } from './username-generator/username-generator
       useFactory: (config: ConfigService) => ({
         type: 'single',
         url: config.getOrThrow<string>('REDIS_URL'),
+      }),
+      inject: [ConfigService],
+    }),
+    BullModule.forRootAsync({
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          url: config.getOrThrow<string>('REDIS_URL'),
+        },
       }),
       inject: [ConfigService],
     }),
