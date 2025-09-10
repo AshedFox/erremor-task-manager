@@ -45,8 +45,9 @@ export class UserService {
             username,
             displayName: username
               .split('-')
+              .slice(2)
               .map((part) => part[0]?.toUpperCase() + part.slice(1))
-              .join(),
+              .join(' '),
           },
         });
       } catch (error) {
