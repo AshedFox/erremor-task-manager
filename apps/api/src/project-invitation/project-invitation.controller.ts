@@ -60,6 +60,15 @@ export class ProjectInvitationController {
     return this.invitationService.accept(projectId, currentUserId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Delete('me/reject')
+  async reject(
+    @CurrentUser('sub') currentUserId: string,
+    @Param('projectId') projectId: string
+  ): Promise<ProjectInvitation> {
+    return this.invitationService.reject(projectId, currentUserId);
+  }
+
   @UseGuards(JwtAuthGuard, ProjectRolesGuard)
   @ProjectRole(ParticipantRole.ADMIN)
   @Get()
