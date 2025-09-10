@@ -52,7 +52,7 @@ export class ProjectInvitationController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post(':userId/accept')
+  @Post('me/accept')
   async accept(
     @CurrentUser('sub') currentUserId: string,
     @Param('projectId') projectId: string
