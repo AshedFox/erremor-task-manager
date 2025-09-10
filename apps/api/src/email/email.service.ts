@@ -1,6 +1,10 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MailerService } from '@nestjs-modules/mailer';
+import { Queue } from 'bullmq';
+
+import { EmailJobData, EmailJobName } from './types/email.types';
 
 @Injectable()
 export class EmailService {
@@ -9,10 +13,21 @@ export class EmailService {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly mailerService: MailerService
+    private readonly mailerService: MailerService,
+    @InjectQueue('email')
+    private readonly emailQueue: Queue
   ) {
     this.appName = this.configService.getOrThrow<string>('APP_NAME');
     this.appUrl = this.configService.getOrThrow<string>('APP_FRONTEND_URL');
+  }
+
+  async addEmailJob<K extends EmailJobName>(name: K, data: EmailJobData[K]) {
+    return this.emailQueue.add(name, data, {
+      attempts: 3,
+      backoff: { delay: 500, type: 'exponential' },
+      removeOnComplete: 10,
+      removeOnFail: 5,
+    });
   }
 
   async sendAccountActivationEmail(

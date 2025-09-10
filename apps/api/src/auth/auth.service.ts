@@ -86,20 +86,21 @@ export class AuthService {
         throw new UnauthorizedException('Failed to register!');
       }
 
-      return this.emailService.sendAccountActivationEmail(
+      await this.emailService.addEmailJob('sendActivation', {
         email,
-        await this.generateActivationToken(existingUser.id),
-        this.activationTokenLifetime
-      );
+        token: await this.generateActivationToken(existingUser.id),
+        lifetime: this.activationTokenLifetime,
+      });
     } catch (e) {
       if (e instanceof NotFoundException) {
         const user = await this.userService.create({ email, password });
 
-        return this.emailService.sendAccountActivationEmail(
+        await this.emailService.addEmailJob('sendActivation', {
           email,
-          await this.generateActivationToken(user.id),
-          this.activationTokenLifetime
-        );
+          token: await this.generateActivationToken(user.id),
+          lifetime: this.activationTokenLifetime,
+        });
+        return;
       }
 
       throw e;
@@ -287,11 +288,11 @@ export class AuthService {
   async requestPasswordReset(email: string): Promise<void> {
     const user = await this.userService.findOneByEmail(email);
 
-    return this.emailService.sendPasswordResetEmail(
+    await this.emailService.addEmailJob('sendPasswordReset', {
       email,
-      await this.generateResetPasswordToken(user.id),
-      this.resetPasswordTokenLifetime
-    );
+      token: await this.generateResetPasswordToken(user.id),
+      lifetime: this.resetPasswordTokenLifetime,
+    });
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {

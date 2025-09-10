@@ -44,12 +44,12 @@ export class ProjectInvitationService {
       throw new NotFoundException('User or project not found');
     }
 
-    await this.emailService.sendProjectInviteEmail(
-      user.email,
+    await this.emailService.addEmailJob('sendProjectInvitation', {
+      email: user.email,
       token,
-      project.name,
-      data.expiresAt
-    );
+      projectName: project.name,
+      expiresAt: data.expiresAt,
+    });
 
     return this.prisma.$transaction(async (tx) => {
       const participant = await tx.projectParticipant.findUnique({
