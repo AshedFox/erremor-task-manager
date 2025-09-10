@@ -138,6 +138,26 @@ export class ProjectInvitationService {
     });
   }
 
+  async reject(projectId: string, userId: string): Promise<ProjectInvitation> {
+    return this.prisma.$transaction(async (tx) => {
+      const invitation = await tx.projectInvitation.findUnique({
+        where: { projectId_userId: { projectId, userId } },
+      });
+
+      if (!invitation) {
+        throw new NotFoundException('Invitation not found');
+      }
+
+      await tx.projectParticipant.delete({
+        where: { projectId_userId: { projectId, userId } },
+      });
+
+      return tx.projectInvitation.delete({
+        where: { projectId_userId: { projectId, userId } },
+      });
+    });
+  }
+
   searchByProject(
     projectId: string,
     pagination: OffsetPagination,
