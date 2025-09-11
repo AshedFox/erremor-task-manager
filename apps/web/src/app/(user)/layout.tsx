@@ -23,7 +23,7 @@ const Layout = async ({
   return (
     <UserProvider initialUser={user}>
       <SidebarProvider>
-        <AppSidebar user={user} />
+        <AppSidebar />
         <SidebarInset className="overflow-hidden">
           <Header />
           <Separator />
