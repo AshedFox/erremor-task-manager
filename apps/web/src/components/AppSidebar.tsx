@@ -16,11 +16,7 @@ import Logo from './Logo';
 import SidebarNav from './SidebarNav';
 import ThemeSwitch from './ThemeSwitch';
 
-type Props = {
-  user: User;
-};
-
-const AppSidebar = ({ user }: Props) => {
+const AppSidebar = () => {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
