@@ -4,10 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext } from 'react';
 
+import { apiFetchSafe } from '@/lib/api-fetch.client';
 import { User } from '@/types/user';
 
 type UserContextValue = {
-  user: User | null;
+  user: User;
   isLoading: boolean;
   refetchUser: () => Promise<void>;
 };
@@ -25,16 +26,16 @@ export function UserProvider({ children, initialUser }: Props) {
   } = useQuery<User>({
     queryKey: ['current-user'],
     queryFn: async () => {
-      const res = await fetch('/api/proxy/users/me', {
+      const result = await apiFetchSafe<User>('/users/me', {
         credentials: 'include',
       });
-      if (!res.ok) {
+      if (result.error) {
         router.push('/login');
         throw new Error('Failed to get user!');
       }
-      return res.json();
+      return result.data;
     },
-    initialData: initialUser ?? undefined,
+    initialData: initialUser,
     staleTime: 60000 * 10,
   });
 
@@ -43,7 +44,7 @@ export function UserProvider({ children, initialUser }: Props) {
   }
 
   return (
-    <UserContext value={{ user: user ?? null, isLoading, refetchUser }}>
+    <UserContext value={{ user, isLoading, refetchUser }}>
       {children}
     </UserContext>
   );
