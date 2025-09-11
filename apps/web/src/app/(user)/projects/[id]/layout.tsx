@@ -40,7 +40,7 @@ const Layout = async ({ children, params }: Props) => {
     { next: { tags: [`project-${id}`] } }
   );
 
-  const role = project.participants.find((val) => (val.userId = user.id))?.role;
+  const role = project.participants.find((val) => val.userId === user.id)?.role;
 
   if (!role) {
     redirect('/projects');

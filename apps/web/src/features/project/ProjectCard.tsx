@@ -45,7 +45,7 @@ const ProjectCard = ({ project, user }: Props) => {
   );
 
   const userRole = useMemo(
-    () => project.participants.find((value) => (value.userId = user.id))?.role,
+    () => project.participants.find((value) => value.userId === user.id)?.role,
     [project.participants, user.id]
   );
 
