@@ -12,7 +12,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@workspace/ui/components/dropdown-menu';
-import { ChevronDownIcon, SettingsIcon, UserIcon } from 'lucide-react';
+import {
+  ChevronDownIcon,
+  MailQuestionIcon,
+  SettingsIcon,
+  UserIcon,
+} from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
@@ -62,6 +67,11 @@ const ProfileDropdownMenu = () => {
         <DropdownMenuItem asChild>
           <Link href="/profile">
             <UserIcon /> Profile
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/profile/invitations">
+            <MailQuestionIcon /> Invitations
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

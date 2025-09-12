@@ -20,6 +20,13 @@ export const PARTICIPANT_STATUSES = [
   'BANNED',
 ] as const;
 
+export const PARTICIPANT_ROLES_HIERARCHY: Record<ParticipantRole, number> = {
+  OWNER: 3,
+  ADMIN: 2,
+  USER: 1,
+  GUEST: 0,
+};
+
 export const PARTICIPANT_ROLES_ICONS: Record<
   ParticipantRole,
   React.ComponentType<React.SVGProps<SVGSVGElement>>
