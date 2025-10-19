@@ -19,6 +19,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.913.0",
+    "@aws-sdk/s3-request-presigner": "^3.913.0",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/bullmq": "^11.0.3",
@@ -28,6 +30,7 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/platform-express": "^11.1.6",
+    "@nestjs/schedule": "^6.0.1",
     "@prisma/client": "6.16.1",
     "@sindresorhus/slugify": "^3.0.0",
     "argon2": "^0.44.0",

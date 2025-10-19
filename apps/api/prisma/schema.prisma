@@ -77,6 +77,31 @@ model Task {
   checkList   CheckListItem[]
 }
 
+enum FileType {
+  IMAGE
+  VIDEO
+  AUDIO
+  VOICE
+  FILE
+}
+
+enum FileStatus {
+  PENDING
+  UPLOADED
+}
+
+model File {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String     @db.VarChar(63)
+  type      FileType   @default(FILE)
+  status    FileStatus @default(PENDING)
+  mimetype  String     @db.VarChar(63)
+  size      Int
+  url       String     @db.VarChar(255)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
 enum ProjectStatus {
   OPEN
   ARCHIVED
