@@ -75,4 +75,15 @@ export class FileService {
 
     return this.prisma.file.delete({ where: { id } });
   }
+
+  async clearOldNotUploadedFiles(): Promise<number> {
+    const { count } = await this.prisma.file.deleteMany({
+      where: {
+        status: FileStatus.PENDING,
+        createdAt: { lt: new Date(Date.now() - 3_600_000) },
+      },
+    });
+
+    return count;
+  }
 }

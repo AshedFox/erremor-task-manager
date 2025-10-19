@@ -1,4 +1,12 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Logger,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { File } from '@prisma/client';
 
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -20,5 +28,12 @@ export class FileController {
   @Post(':id/complete')
   completeUpload(@Param('id') id: string): Promise<File> {
     return this.fileService.completeUpload(id);
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async clearOldNotUploadedFiles() {
+    Logger.log('Clearing old not uploaded files from db...');
+    const deletedCount = await this.fileService.clearOldNotUploadedFiles();
+    Logger.log(`Deleted ${deletedCount} old not uploaded files from db`);
   }
 }

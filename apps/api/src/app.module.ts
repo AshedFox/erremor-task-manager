@@ -1,6 +1,7 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { RedisModule } from '@nestjs-modules/ioredis';
 
 import { AuthModule } from './auth/auth.module';
@@ -31,6 +32,7 @@ import { UsernameGeneratorModule } from './username-generator/username-generator
       }),
       inject: [ConfigService],
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsernameGeneratorModule,
     EmailModule,
