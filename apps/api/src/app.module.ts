@@ -6,9 +6,11 @@ import { RedisModule } from '@nestjs-modules/ioredis';
 
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
+import { FileModule } from './file/file.module';
 import { ProjectModule } from './project/project.module';
 import { ProjectInvitationModule } from './project-invitation/project-invitation.module';
 import { ProjectParticipantModule } from './project-participant/project-participant.module';
+import { StorageModule } from './storage/storage.module';
 import { TagModule } from './tag/tag.module';
 import { TaskModule } from './task/task.module';
 import { UserModule } from './user/user.module';
@@ -37,11 +39,13 @@ import { UsernameGeneratorModule } from './username-generator/username-generator
     UsernameGeneratorModule,
     EmailModule,
     UserModule,
+    FileModule,
     TaskModule,
     ProjectModule,
     ProjectParticipantModule,
     ProjectInvitationModule,
     TagModule,
+    StorageModule,
   ],
   controllers: [],
   providers: [],
