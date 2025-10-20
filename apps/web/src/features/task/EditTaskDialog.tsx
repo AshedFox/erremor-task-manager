@@ -15,7 +15,7 @@ import { TaskWithInclude } from '@/types/task';
 import EditTaskForm from './EditTaskForm';
 
 type Props = {
-  task: TaskWithInclude<'tags'>;
+  task: TaskWithInclude<'tags' | 'files'>;
 };
 
 const EditTaskDialog = ({ task }: Props) => {

@@ -27,6 +27,7 @@ import {
 } from '@/lib/validation/task';
 import { Tag } from '@/types/tag';
 
+import FileUploader from '../file/FileUploader';
 import TagSelector from '../tag/TagSelector';
 
 type CreateTaskInput = z.infer<typeof createTaskFormSchema>;
@@ -36,10 +37,19 @@ type Props = {
   mode: 'create' | 'edit';
   form: UseFormReturn<CreateTaskInput | EditTaskInput>;
   isPending: boolean;
+  isUploading: boolean;
+  onFileUpload: (file: File) => void;
   onTagCreate: (input: z.infer<typeof createTagSchema>) => Promise<Tag>;
 };
 
-const TaskFormFields = ({ form, isPending, mode, onTagCreate }: Props) => {
+const TaskFormFields = ({
+  form,
+  isPending,
+  isUploading,
+  mode,
+  onFileUpload,
+  onTagCreate,
+}: Props) => {
   return (
     <>
       <Controller
@@ -184,6 +194,25 @@ const TaskFormFields = ({ form, isPending, mode, onTagCreate }: Props) => {
               })
             }
             onChange={(options) => form.setValue('tags', options)}
+          />
+        )}
+      />
+
+      <Controller
+        control={form.control}
+        name="files"
+        render={({ field, fieldState }) => (
+          <FileUploader
+            files={field.value}
+            fieldState={fieldState}
+            isLoading={isUploading}
+            onUpload={onFileUpload}
+            onRemove={(id) =>
+              form.setValue(
+                'files',
+                (field.value ?? []).filter((f) => f.id !== id)
+              )
+            }
           />
         )}
       />

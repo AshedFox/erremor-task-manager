@@ -17,10 +17,11 @@ type EditTaskInput = z.infer<typeof editTaskFormSchema>;
 export const useEditTask = (id: string, { onSuccess, onError }: Options) =>
   useMutation({
     mutationFn: async (input: EditTaskInput) => {
-      const { tags, ...rest } = input;
+      const { tags, files, ...rest } = input;
       const { data, error } = await editTask(id, {
         ...rest,
         existingTags: tags?.map((tag) => tag.value),
+        filesIds: files?.map((file) => file.id),
       });
 
       if (error) {

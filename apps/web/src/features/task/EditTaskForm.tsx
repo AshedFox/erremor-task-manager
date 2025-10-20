@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import z from 'zod';
@@ -12,13 +12,14 @@ import z from 'zod';
 import Spinner from '@/components/Spinner';
 import { useCreateTag } from '@/hooks/use-create-tag';
 import { useEditTask } from '@/hooks/use-edit-task';
+import { useUploadFile } from '@/hooks/use-upload-file';
 import { editTaskFormSchema } from '@/lib/validation/task';
 import { TaskWithInclude } from '@/types/task';
 
 import TaskFormFields from './TaskFormFields';
 
 type Props = {
-  initialData: TaskWithInclude<'tags'>;
+  initialData: TaskWithInclude<'tags' | 'files'>;
   onSuccess?: () => void;
 };
 
@@ -87,6 +88,27 @@ const EditTaskForm = ({ initialData, onSuccess }: Props) => {
     },
   });
 
+  const { mutate: upload, isPending: isUploading } = useUploadFile({
+    onSuccess: async (file) => {
+      form.setValue('files', [...(form.getValues().files ?? []), file]);
+    },
+    onError: (e) => {
+      toast.error('Failed to upload file', { description: e.message });
+    },
+  });
+
+  const handleFileChange = useCallback(
+    (file: File) => {
+      if ((form.getValues().files ?? []).length >= 5) {
+        toast.error('You can only upload up to 5 files at once.');
+        return;
+      }
+
+      upload(file);
+    },
+    [form, upload]
+  );
+
   const onSubmit = (input: EditTaskInput) => {
     mutate(input);
   };
@@ -98,6 +120,8 @@ const EditTaskForm = ({ initialData, onSuccess }: Props) => {
         // @ts-expect-error
         form={form}
         isPending={isPending}
+        isUploading={isUploading}
+        onFileUpload={handleFileChange}
         onTagCreate={addTag}
         mode="edit"
       />

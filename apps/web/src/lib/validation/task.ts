@@ -1,5 +1,6 @@
 import z from 'zod';
 
+import { FILE_TYPES } from '@/constants/file';
 import { TASK_PRIORITIES, TASK_STATUSES } from '@/constants/task';
 
 import { optionSchema } from './common';
@@ -13,12 +14,24 @@ export const createTaskSchema = z.object({
   priority: z.enum(TASK_PRIORITIES),
   existingTags: z.array(z.uuid()).min(1).optional(),
   newTags: z.array(createTagSchema).min(1).optional(),
+  filesIds: z.array(z.uuid()).min(1).optional(),
 });
 
 export const createTaskFormSchema = createTaskSchema
-  .omit({ existingTags: true, newTags: true })
+  .omit({ existingTags: true, newTags: true, filesIds: true })
   .extend({
     tags: z.array(optionSchema).optional(),
+    files: z
+      .array(
+        z.object({
+          id: z.uuid(),
+          name: z.string(),
+          type: z.enum(FILE_TYPES),
+          url: z.string(),
+          size: z.number(),
+        })
+      )
+      .optional(),
   });
 
 export const editTaskSchema = createTaskSchema.extend({
