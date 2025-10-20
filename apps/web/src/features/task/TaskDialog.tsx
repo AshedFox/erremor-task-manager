@@ -15,7 +15,7 @@ import { TaskWithInclude } from '@/types/task';
 import FullTaskCard from './FullTaskCard';
 
 type Props = {
-  task: TaskWithInclude<'tags' | 'creator'>;
+  task: TaskWithInclude<'tags' | 'creator' | 'files'>;
 };
 
 const TaskDialog = ({ task }: Props) => {

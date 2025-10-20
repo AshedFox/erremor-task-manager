@@ -14,7 +14,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { taskId } = await params;
-  const task = await apiFetch<Task>(`/tasks/${taskId}?include=tags,creator`, {
+  const task = await apiFetch<Task>(`/tasks/${taskId}`, {
     next: { tags: [`tasks-${taskId}`] },
   });
 
@@ -26,8 +26,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const Page = async ({ params }: Props) => {
   const { taskId } = await params;
-  const task = await apiFetch<TaskWithInclude<'tags' | 'creator'>>(
-    `/tasks/${taskId}?include=tags,creator`,
+  const task = await apiFetch<TaskWithInclude<'tags' | 'creator' | 'files'>>(
+    `/tasks/${taskId}?include=tags,creator,files`,
     { next: { tags: [`tasks-${taskId}`] } }
   );
 

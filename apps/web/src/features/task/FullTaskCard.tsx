@@ -20,7 +20,8 @@ import {
 } from '@workspace/ui/components/dropdown-menu';
 import { cn } from '@workspace/ui/lib/utils';
 import { format } from 'date-fns';
-import { MoreVerticalIcon, PencilIcon } from 'lucide-react';
+import { FileIcon, MoreVerticalIcon, PencilIcon } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
@@ -29,7 +30,7 @@ import { TaskWithInclude } from '@/types/task';
 import DeleteTaskDropdownItem from './DeleteTaskDropdownItem';
 
 type Props = {
-  task: TaskWithInclude<'tags' | 'creator'>;
+  task: TaskWithInclude<'tags' | 'creator' | 'files'>;
 };
 
 const FullTaskCard = ({ task }: Props) => {
@@ -127,6 +128,49 @@ const FullTaskCard = ({ task }: Props) => {
                     {tag.name}
                   </Badge>
                 ))}
+              </div>
+            </div>
+          )}
+          {task.files.length > 0 && (
+            <div className="col-span-2">
+              <p className="text-muted-foreground text-xs">Files</p>
+              <div className="grid gap-4 auto-rows-auto">
+                {task.files.map((file) => {
+                  return (
+                    <div
+                      key={file.id}
+                      className="rounded-sm overflow-hidden border p-2"
+                    >
+                      {file.type === 'IMAGE' ? (
+                        <div className="relative overflow-hidden h-48">
+                          <Image
+                            className="object-cover"
+                            src={file.url}
+                            alt={file.name}
+                            fill
+                          />
+                        </div>
+                      ) : file.type === 'VIDEO' ? (
+                        <video src={file.url} controls />
+                      ) : file.type === 'AUDIO' ? (
+                        <audio className="w-full" src={file.url} controls />
+                      ) : (
+                        <div className="flex gap-1 items-center p-2">
+                          <FileIcon />
+                          <a
+                            key={file.id}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600"
+                          >
+                            {file.name}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
