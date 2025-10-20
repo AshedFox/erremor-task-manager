@@ -17,10 +17,11 @@ type Options = {
 export const useCreateTask = (options?: Options) =>
   useMutation({
     mutationFn: async (input: CreateTaskInput) => {
-      const { tags, ...rest } = input;
+      const { tags, files, ...rest } = input;
       const { data, error } = await createTask({
         ...rest,
         existingTags: tags?.map((tag) => tag.value),
+        filesIds: files?.map((file) => file.id),
       });
 
       if (error) {

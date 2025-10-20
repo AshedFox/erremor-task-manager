@@ -2,6 +2,7 @@ import { TASK_PRIORITIES, TASK_STATUSES } from '@/constants/task';
 
 import { CheckListItem } from './check-list';
 import { UnionToIntersection } from './common';
+import { File } from './file';
 import { Project } from './project';
 import { Tag } from './tag';
 import { User } from './user';
@@ -28,6 +29,7 @@ export type TaskIncludeMap = {
   creator: { creator: User };
   tags: { tags: Tag[] };
   checkList: { checklist: CheckListItem[] };
+  files: { files: File[] };
 };
 
 export type TaskWithInclude<K extends keyof TaskIncludeMap> = Task &
