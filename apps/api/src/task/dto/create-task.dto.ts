@@ -49,4 +49,9 @@ export class CreateTaskDto {
   @ArrayUnique((tag: CreateTagDto) => tag.name.toLowerCase())
   @ValidateNested({ each: true })
   newTags?: CreateTagDto[];
+
+  @IsOptional()
+  @ArrayUnique()
+  @IsUUID(4, { each: true })
+  filesIds?: string[];
 }

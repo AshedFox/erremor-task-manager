@@ -19,7 +19,8 @@ export class TaskService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateTaskParams): Promise<Task> {
-    const { existingTags, newTags, ...rest } = data;
+    const { existingTags, newTags, filesIds, ...rest } = data;
+
     return this.prisma.task.create({
       data: {
         ...rest,
@@ -28,6 +29,9 @@ export class TaskService {
             ? existingTags.map((id) => ({ id }))
             : undefined,
           create: newTags ? newTags : undefined,
+        },
+        files: {
+          connect: filesIds ? filesIds.map((id) => ({ id })) : undefined,
         },
       },
     });
@@ -90,7 +94,7 @@ export class TaskService {
   }
 
   update(id: string, data: UpdateTaskParams): Promise<Task> {
-    const { existingTags, newTags, ...rest } = data;
+    const { existingTags, newTags, filesIds, ...rest } = data;
 
     return this.prisma.task.update({
       where: { id },
@@ -100,6 +104,7 @@ export class TaskService {
           set: existingTags ? existingTags.map((id) => ({ id })) : undefined,
           create: newTags ? newTags : undefined,
         },
+        files: { set: filesIds?.map((id) => ({ id })) },
       },
     });
   }

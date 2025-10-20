@@ -75,6 +75,7 @@ model Task {
   creator     User            @relation(fields: [creatorId], references: [id])
   tags        Tag[]
   checkList   CheckListItem[]
+  files       File[]
 }
 
 enum FileType {
@@ -100,6 +101,7 @@ model File {
   url       String     @db.VarChar(255)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  tasks     Task[]
 }
 
 enum ProjectStatus {
