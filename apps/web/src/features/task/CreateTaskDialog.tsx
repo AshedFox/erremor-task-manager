@@ -26,7 +26,7 @@ const CreateTaskDialog = ({ projectId }: Props) => {
       }}
       open={true}
     >
-      <DialogContent>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>Create task</DialogTitle>
           <DialogDescription>
