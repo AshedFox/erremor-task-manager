@@ -92,7 +92,7 @@ enum FileStatus {
 
 model File {
   id        String     @id @default(uuid()) @db.Uuid
-  name      String     @db.VarChar(63)
+  name      String     @db.VarChar(255)
   type      FileType   @default(FILE)
   status    FileStatus @default(PENDING)
   mimetype  String     @db.VarChar(63)
