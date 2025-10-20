@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 
 export class InitUploadDto {
-  @Length(1, 63)
+  @Length(1, 255)
   name!: string;
 
   @IsMimeType()
