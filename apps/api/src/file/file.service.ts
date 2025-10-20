@@ -23,7 +23,7 @@ export class FileService {
   }
 
   async initUpload(data: InitUploadDto) {
-    const id = randomUUID().toString();
+    const id = randomUUID();
     const key = this.makeKey(id, data.type);
     const uploadUrl = await this.storageService.getUploadUrl(
       key,
