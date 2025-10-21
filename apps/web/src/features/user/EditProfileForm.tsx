@@ -32,6 +32,8 @@ import { editProfile } from '@/lib/actions/edit-profile';
 import { editProfileSchema } from '@/lib/validation/user';
 import { UserWithInclude } from '@/types/user';
 
+import AvatarInput from './AvatarInput';
+
 type EditProfileInput = z.infer<typeof editProfileSchema>;
 
 type Props = {
@@ -77,9 +79,15 @@ const EditProfileForm = ({ user, onSuccess }: Props) => {
   const onSubmit = (input: EditProfileInput) => {
     mutate(input);
   };
+
   return (
     <Form {...form}>
       <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <AvatarInput
+          userId={user.id}
+          username={user.username}
+          url={user.avatar?.url}
+        />
         <FormField
           control={form.control}
           name="displayName"
