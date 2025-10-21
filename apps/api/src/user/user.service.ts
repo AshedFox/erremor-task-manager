@@ -12,6 +12,7 @@ import argon2 from 'argon2';
 import { PasswordService } from '@/auth/password.service';
 import { Include, mapInclude } from '@/common/include';
 import { OffsetPagination } from '@/common/pagination';
+import { FileService } from '@/file/file.service';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UsernameGeneratorService } from '@/username-generator/username-generator.service';
 
@@ -26,7 +27,8 @@ export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly passwordService: PasswordService,
-    private readonly usernameGenerator: UsernameGeneratorService
+    private readonly usernameGenerator: UsernameGeneratorService,
+    private readonly fileService: FileService
   ) {}
 
   async create({ password, email }: CreateUserDto): Promise<SafeUser> {
@@ -175,11 +177,26 @@ export class UserService {
     return user;
   }
 
-  update(id: string, data: UpdateUserDto): Promise<SafeUser> {
-    return this.prisma.user.update({
+  async update(id: string, data: UpdateUserDto): Promise<SafeUser> {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      omit: { passwordHash: false },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with this id not found!`);
+    }
+
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data,
     });
+
+    if (data.avatarId && user.avatarId && user.avatarId !== data.avatarId) {
+      await this.fileService.remove(user.avatarId);
+    }
+
+    return updatedUser;
   }
 
   async updatePassword(
