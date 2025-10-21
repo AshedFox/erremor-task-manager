@@ -20,6 +20,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { SearchUsersFilterDto } from './dto/search-users-filter.dto';
 import { SearchUsersSortDto } from './dto/search-users-sort.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UsersIncludeDto } from './dto/users-include.dto';
 import { FindManyUsersResult, SafeUser } from './types/user.types';
 
 @Injectable()
@@ -103,7 +104,7 @@ export class UserService {
     projectId: string,
     pagination: OffsetPagination,
     filter: SearchUsersFilterDto,
-    { include }: Include<Prisma.UserInclude>
+    { include }: UsersIncludeDto
   ) {
     const prismaInclude = mapInclude(include);
     const { search, ...restFilter } = filter;
@@ -128,9 +129,14 @@ export class UserService {
     });
   }
 
-  async findOneById(id: string): Promise<SafeUser> {
+  async findOneById(
+    id: string,
+    { include }: UsersIncludeDto
+  ): Promise<SafeUser> {
+    const prismaInclude = mapInclude(include);
     const user = await this.prisma.user.findUnique({
       where: { id },
+      include: prismaInclude,
     });
 
     if (!user) {
