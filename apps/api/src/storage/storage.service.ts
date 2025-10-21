@@ -1,6 +1,7 @@
 import {
   CreateBucketCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   HeadBucketCommand,
   HeadObjectCommand,
   PutObjectCommand,
@@ -9,6 +10,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { createHash } from 'crypto';
 import { Readable } from 'stream';
 
 import { S3_CLIENT_TOKEN } from './storage.token';
@@ -90,5 +92,38 @@ export class StorageService implements OnModuleInit {
         Key: key,
       })
     );
+  }
+
+  async deleteMany(keys: string[]): Promise<void> {
+    if (keys.length === 0) {
+      return;
+    }
+
+    const command = new DeleteObjectsCommand({
+      Bucket: this.bucket,
+      Delete: { Objects: keys.map((key) => ({ Key: key })), Quiet: true },
+    });
+
+    command.middlewareStack.add(
+      (next) => async (args) => {
+        const request = args.request as {
+          body?: string;
+          headers: Record<string, string>;
+        };
+        if (typeof request.body === 'string') {
+          const hash = createHash('md5')
+            .update(request.body, 'utf8')
+            .digest('base64');
+          request.headers['Content-MD5'] = hash;
+        }
+        return next(args);
+      },
+      {
+        step: 'build',
+        name: 'addContentMD5Middleware',
+      }
+    );
+
+    await this.s3.send(command);
   }
 }
