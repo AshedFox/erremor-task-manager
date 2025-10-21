@@ -5,17 +5,17 @@ import { useRouter } from 'next/navigation';
 import { createContext, ReactNode, useContext } from 'react';
 
 import { apiFetchSafe } from '@/lib/api-fetch.client';
-import { User } from '@/types/user';
+import { UserWithInclude } from '@/types/user';
 
 type UserContextValue = {
-  user: User;
+  user: UserWithInclude<'avatar'>;
   isLoading: boolean;
   refetchUser: () => Promise<void>;
 };
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
 
-type Props = { children: ReactNode; initialUser: User };
+type Props = { children: ReactNode; initialUser: UserWithInclude<'avatar'> };
 
 export function UserProvider({ children, initialUser }: Props) {
   const router = useRouter();
@@ -23,12 +23,16 @@ export function UserProvider({ children, initialUser }: Props) {
     data: user,
     isLoading,
     refetch,
-  } = useQuery<User>({
+  } = useQuery<UserWithInclude<'avatar'>>({
     queryKey: ['current-user'],
     queryFn: async () => {
-      const result = await apiFetchSafe<User>('/users/me', {
-        credentials: 'include',
-      });
+      const result = await apiFetchSafe<UserWithInclude<'avatar'>>(
+        '/users/me?include=avatar',
+        {
+          credentials: 'include',
+        }
+      );
+
       if (result.error) {
         router.push('/login');
         throw new Error('Failed to get user!');

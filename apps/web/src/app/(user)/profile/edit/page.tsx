@@ -7,14 +7,16 @@ import React from 'react';
 
 import EditProfileForm from '@/features/user/EditProfileForm';
 import { apiFetch } from '@/lib/api-fetch.server';
-import { User } from '@/types/user';
+import { UserWithInclude } from '@/types/user';
 
 export const metadata: Metadata = {
   title: 'Edit profile',
 };
 
 const Page = async () => {
-  const user = await apiFetch<User>('/users/me');
+  const user = await apiFetch<UserWithInclude<'avatar'>>(
+    '/users/me?include=avatar'
+  );
 
   return (
     <div className="p-6 flex flex-col md:flex-row items-start gap-4 flex-1">

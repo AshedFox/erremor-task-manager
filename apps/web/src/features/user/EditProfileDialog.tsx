@@ -9,12 +9,12 @@ import {
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
-import { User } from '@/types/user';
+import { UserWithInclude } from '@/types/user';
 
 import EditProfileForm from './EditProfileForm';
 
 type Props = {
-  user: User;
+  user: UserWithInclude<'avatar'>;
 };
 
 const EditProfileDialog = ({ user }: Props) => {

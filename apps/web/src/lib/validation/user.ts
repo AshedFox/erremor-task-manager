@@ -21,4 +21,5 @@ export const editProfileSchema = z.object({
         `Your date must be before ${format(Number(val.maximum), 'PPP')}`,
     })
     .nullish(),
+  avatarId: z.uuid().optional(),
 });

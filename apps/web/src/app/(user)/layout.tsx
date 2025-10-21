@@ -9,7 +9,7 @@ import AppSidebar from '@/components/AppSidebar';
 import Header from '@/components/Header';
 import { UserProvider } from '@/features/auth/UserContext';
 import { apiFetch } from '@/lib/api-fetch.server';
-import { User } from '@/types/user';
+import { UserWithInclude } from '@/types/user';
 
 const Layout = async ({
   children,
@@ -18,7 +18,9 @@ const Layout = async ({
   children: React.ReactNode;
   modal: React.ReactNode;
 }>) => {
-  const user = await apiFetch<User>('/users/me');
+  const user = await apiFetch<UserWithInclude<'avatar'>>(
+    '/users/me?include=avatar'
+  );
 
   return (
     <UserProvider initialUser={user}>

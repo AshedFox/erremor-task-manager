@@ -18,12 +18,12 @@ import { CakeIcon, CalendarIcon, HistoryIcon, MailIcon } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-import { User } from '@/types/user';
+import { UserWithInclude } from '@/types/user';
 
 import LogoutButton from '../auth/LogoutButton';
 
 type Props = {
-  user: User;
+  user: UserWithInclude<'avatar'>;
 };
 
 const ProfileCard = ({ user }: Props) => {
@@ -40,7 +40,7 @@ const ProfileCard = ({ user }: Props) => {
       <CardContent className="space-y-6">
         <div className="flex items-center gap-3">
           <Avatar className="size-24">
-            <AvatarImage />
+            <AvatarImage className="object-cover" src={user.avatar?.url} />
             <AvatarFallback className="bg-secondary">
               {user?.username
                 .split('-')

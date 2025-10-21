@@ -3,14 +3,16 @@ import React from 'react';
 
 import ProfileCard from '@/features/user/ProfileCard';
 import { apiFetch } from '@/lib/api-fetch.server';
-import { User } from '@/types/user';
+import { UserWithInclude } from '@/types/user';
 
 export const metadata: Metadata = {
   title: 'Profile',
 };
 
 const Page = async () => {
-  const user = await apiFetch<User>('/users/me');
+  const user = await apiFetch<UserWithInclude<'avatar'>>(
+    '/users/me?include=avatar'
+  );
 
   return (
     <div className="p-6 mx-auto space-y-6 w-full max-w-3xl">
