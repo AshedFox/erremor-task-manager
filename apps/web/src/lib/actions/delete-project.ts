@@ -1,33 +1,23 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
-import { headers } from 'next/headers';
 
-import { APP_BASE_URL } from '@/constants/env';
 import { Project } from '@/types/project';
 
+import { apiFetchSafe } from '../api-fetch.server';
+
 export async function deleteProject(id: string) {
-  const res = await fetch(`${APP_BASE_URL}/api/proxy/projects/${id}`, {
+  const result = await apiFetchSafe<Project>(`/projects/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      Cookie: (await headers()).get('Cookie') || '',
     },
   });
 
-  if (!res.ok) {
-    const data = (await res.json()) as { message: string | string[] };
-
-    return {
-      data: null,
-      error: new Error(
-        Array.isArray(data.message) ? data.message.join(', ') : data.message
-      ),
-    };
+  if (!result.error) {
+    revalidateTag('projects');
   }
 
-  revalidateTag('projects');
-
-  return { data: (await res.json()) as Project, error: null };
+  return result;
 }
