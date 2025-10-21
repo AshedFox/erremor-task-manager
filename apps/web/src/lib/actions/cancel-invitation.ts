@@ -2,10 +2,12 @@
 
 import { revalidateTag } from 'next/cache';
 
+import { Invitation } from '@/types/invitation';
+
 import { apiFetchSafe } from '../api-fetch.server';
 
 export async function cancelInvitation(projectId: string, userId: string) {
-  const result = await apiFetchSafe(
+  const result = await apiFetchSafe<Invitation>(
     `/projects/${projectId}/invitations/${userId}`,
     {
       method: 'DELETE',

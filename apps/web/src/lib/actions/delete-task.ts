@@ -7,7 +7,6 @@ import { Task } from '@/types/task';
 import { apiFetchSafe } from '../api-fetch.server';
 
 export async function deleteTask(id: string) {
-  console.log('start action', id);
   const { data, error } = await apiFetchSafe<Task>(`/tasks/${id}`, {
     method: 'DELETE',
     headers: {
@@ -15,8 +14,6 @@ export async function deleteTask(id: string) {
       Accept: 'application/json',
     },
   });
-
-  console.log('Delete completed', data, error);
 
   if (!error) {
     revalidateTag('tasks');

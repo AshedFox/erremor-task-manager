@@ -1,38 +1,28 @@
 'use server';
 
 import { revalidateTag } from 'next/cache';
-import { headers } from 'next/headers';
 import z from 'zod';
 
-import { APP_BASE_URL } from '@/constants/env';
 import { createProjectSchema } from '@/lib/validation/project';
 import { Project } from '@/types/project';
+
+import { apiFetchSafe } from '../api-fetch.server';
 
 type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
 export async function createProject(input: CreateProjectInput) {
-  const res = await fetch(`${APP_BASE_URL}/api/proxy/projects`, {
+  const result = await apiFetchSafe<Project>(`/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      Cookie: (await headers()).get('Cookie') || '',
     },
     body: JSON.stringify(input),
   });
 
-  if (!res.ok) {
-    const data = (await res.json()) as { message: string | string[] };
-
-    return {
-      data: null,
-      error: new Error(
-        Array.isArray(data.message) ? data.message.join(', ') : data.message
-      ),
-    };
+  if (!result.error) {
+    revalidateTag('projects');
   }
 
-  revalidateTag('projects');
-
-  return { data: (await res.json()) as Project, error: null };
+  return result;
 }
