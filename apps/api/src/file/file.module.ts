@@ -10,5 +10,6 @@ import { FileService } from './file.service';
   imports: [PrismaModule, StorageModule],
   controllers: [FileController],
   providers: [FileService],
+  exports: [FileService],
 })
 export class FileModule {}

@@ -217,7 +217,7 @@ export class AuthService {
       tokenType: 'Bearer',
       expiresIn: this.accessTokenExpiresIn,
       refreshToken,
-      user: await this.userService.findOneById(userId),
+      user: await this.userService.findOneById(userId, {}),
     };
   }
 

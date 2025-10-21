@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 
 import { AuthModule } from '@/auth/auth.module';
+import { FileModule } from '@/file/file.module';
 import { PrismaModule } from '@/prisma/prisma.module';
 import { UsernameGeneratorModule } from '@/username-generator/username-generator.module';
 
@@ -12,6 +13,7 @@ import { UserService } from './user.service';
     PrismaModule,
     forwardRef(() => AuthModule),
     UsernameGeneratorModule,
+    FileModule,
   ],
   controllers: [UserController],
   providers: [UserService],

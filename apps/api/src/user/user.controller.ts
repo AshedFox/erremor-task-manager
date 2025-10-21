@@ -45,8 +45,11 @@ export class UserController {
   }
 
   @Get('me')
-  findMe(@CurrentUser('sub') userId: string): Promise<SafeUser> {
-    return this.userService.findOneById(userId);
+  findMe(
+    @CurrentUser('sub') userId: string,
+    @Query() include: UsersIncludeDto
+  ): Promise<SafeUser> {
+    return this.userService.findOneById(userId, include);
   }
 
   @Patch('me')
@@ -63,7 +66,10 @@ export class UserController {
   }
 
   @Get(':id')
-  findOne(@Param(ParseUUIDPipe) id: string): Promise<SafeUser> {
-    return this.userService.findOneById(id);
+  findOne(
+    @Param(ParseUUIDPipe) id: string,
+    @Query() include: UsersIncludeDto
+  ): Promise<SafeUser> {
+    return this.userService.findOneById(id, include);
   }
 }
