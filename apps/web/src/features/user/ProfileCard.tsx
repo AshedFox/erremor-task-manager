@@ -40,7 +40,7 @@ const ProfileCard = ({ user }: Props) => {
       <CardContent className="space-y-6">
         <div className="flex items-center gap-3">
           <Avatar className="size-24">
-            <AvatarImage />
+            <AvatarImage className="object-cover" src={user.avatar?.url} />
             <AvatarFallback className="bg-secondary">
               {user?.username
                 .split('-')
