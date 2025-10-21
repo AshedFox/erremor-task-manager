@@ -30,6 +30,6 @@ export function createIncludeDtoFactory<T>() {
       include?: Field[];
     }
 
-    return IncludeDtoClass as new () => Include<T, Field>;
+    return IncludeDtoClass as new () => Include<T>;
   };
 }

@@ -1,3 +1,3 @@
-export type Include<T, K extends keyof T = keyof T> = {
-  include?: K[];
+export type Include<T> = {
+  include?: (keyof T)[];
 };
