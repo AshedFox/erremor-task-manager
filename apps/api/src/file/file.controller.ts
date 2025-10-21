@@ -36,4 +36,11 @@ export class FileController {
     const deletedCount = await this.fileService.clearOldNotUploadedFiles();
     Logger.log(`Deleted ${deletedCount} old not uploaded files from db`);
   }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async clearUnused() {
+    Logger.log('Clearing unused files...');
+    const deletedCount = await this.fileService.clearUnused();
+    Logger.log(`Deleted ${deletedCount} unused files`);
+  }
 }
