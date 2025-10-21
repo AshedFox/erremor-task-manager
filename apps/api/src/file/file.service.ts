@@ -86,4 +86,30 @@ export class FileService {
 
     return count;
   }
+
+  async clearUnused(): Promise<number> {
+    const filesToDelete = await this.prisma.file.findMany({
+      where: {
+        status: FileStatus.UPLOADED,
+        createdAt: { lt: new Date(Date.now() - 3_600_000) },
+        tasks: {
+          none: {},
+        },
+      },
+    });
+
+    if (filesToDelete.length === 0) {
+      return 0;
+    }
+
+    await this.storageService.deleteMany(
+      filesToDelete.map((file) => this.makeKey(file.id, file.type))
+    );
+
+    await this.prisma.file.deleteMany({
+      where: { id: { in: filesToDelete.map((file) => file.id) } },
+    });
+
+    return filesToDelete.length;
+  }
 }
