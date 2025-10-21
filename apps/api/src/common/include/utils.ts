@@ -1,7 +1,7 @@
 export function mapInclude<T extends string>(
   include?: T[]
 ): Record<T, true> | undefined {
-  if (!(include instanceof Array)) {
+  if (!include || !(include instanceof Array) || include.length === 0) {
     return undefined;
   }
   return include.reduce(
