@@ -18,12 +18,12 @@ import { CakeIcon, CalendarIcon, HistoryIcon, MailIcon } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-import { User } from '@/types/user';
+import { UserWithInclude } from '@/types/user';
 
 import LogoutButton from '../auth/LogoutButton';
 
 type Props = {
-  user: User;
+  user: UserWithInclude<'avatar'>;
 };
 
 const ProfileCard = ({ user }: Props) => {

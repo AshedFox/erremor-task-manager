@@ -30,12 +30,12 @@ import z from 'zod';
 import Spinner from '@/components/Spinner';
 import { editProfile } from '@/lib/actions/edit-profile';
 import { editProfileSchema } from '@/lib/validation/user';
-import { User } from '@/types/user';
+import { UserWithInclude } from '@/types/user';
 
 type EditProfileInput = z.infer<typeof editProfileSchema>;
 
 type Props = {
-  user: User;
+  user: UserWithInclude<'avatar'>;
   onSuccess?: () => void;
 };
 

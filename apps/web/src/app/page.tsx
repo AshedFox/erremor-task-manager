@@ -3,10 +3,12 @@ import { ArrowRightIcon, LogInIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import { apiFetchSafe } from '@/lib/api-fetch.server';
-import { User } from '@/types/user';
+import { UserWithInclude } from '@/types/user';
 
 export default async function Page() {
-  const { data: user } = await apiFetchSafe<User>('/users/me');
+  const { data: user } = await apiFetchSafe<UserWithInclude<'avatar'>>(
+    '/users/me?include=avatar'
+  );
 
   return (
     <div className="flex px-10 py-4 flex-1 bg-linear-140 from-primary/15 to-primary/60">
