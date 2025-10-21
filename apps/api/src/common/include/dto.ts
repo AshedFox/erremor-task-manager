@@ -14,9 +14,14 @@ export function createIncludeDtoFactory<T>() {
     type Field = K[number];
 
     class IncludeDtoClass {
-      @Transform(({ value }) =>
-        typeof value === 'string' ? value.split(',') : value
-      )
+      @Transform(({ value }) => {
+        if (typeof value === 'string') {
+          return value.split(',');
+        } else if (value === undefined) {
+          return undefined;
+        }
+        throw new Error('Invalid include value');
+      })
       @IsOptional()
       @IsArray()
       @IsString({ each: true })
