@@ -64,6 +64,22 @@ export class ProjectController {
     return { nodes: projects, totalCount: count };
   }
 
+  @Get('/recent')
+  async searchRecent(
+    @CurrentUser('sub') userId: string,
+    @Query() pagination: OffsetPaginationDto,
+    @Query() filter: SearchProjectsFilterDto,
+    @Query() include: ProjectsIncludeDto
+  ): Promise<SearchProjectsResponseDto> {
+    const [projects, count] = await this.projectService.searchRecent(
+      { skip: pagination.skip, take: pagination.take },
+      { ...filter, userId },
+      include
+    );
+
+    return { nodes: projects, totalCount: count };
+  }
+
   @UseGuards(ProjectRolesGuard)
   @ProjectRole(ParticipantRole.GUEST)
   @Get(':projectId')

@@ -77,6 +77,59 @@ export class ProjectService {
     ]);
   }
 
+  async searchRecent(
+    pagination: OffsetPagination,
+    filter: FindManyProjectsFilter,
+    { include }: Include<Prisma.ProjectInclude>
+  ): Promise<FindManyProjectsResult> {
+    const prismaInclude = mapInclude(include);
+    const { search, userId, ...restFilter } = filter;
+    const where = {
+      OR: search
+        ? [
+            { name: { contains: search, mode: 'insensitive' } },
+            {
+              description: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          ]
+        : undefined,
+      participants: { some: { userId, status: ParticipantStatus.JOINED } },
+      ...restFilter,
+    } satisfies Prisma.ProjectWhereInput;
+
+    const participants = await this.prisma.projectParticipant.findMany({
+      ...pagination,
+      where: {
+        userId,
+        status: ParticipantStatus.JOINED,
+      },
+      orderBy: {
+        lastViewedAt: 'desc',
+      },
+      select: {
+        projectId: true,
+        lastViewedAt: true,
+      },
+    });
+
+    return this.prisma.$transaction([
+      this.prisma.project.findMany({
+        ...pagination,
+        where: {
+          ...where,
+          id: {
+            in: participants.map((p) => p.projectId),
+          },
+        },
+        include: prismaInclude,
+      }),
+      this.prisma.project.count({ where }),
+    ]);
+  }
+
   async findOne(
     id: string,
     { include }: Include<Prisma.ProjectInclude>
