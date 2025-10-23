@@ -4,24 +4,21 @@ import { Button } from '@workspace/ui/components/button';
 import {
   Field,
   FieldContent,
+  FieldError,
   FieldLabel,
 } from '@workspace/ui/components/field';
 import { Input } from '@workspace/ui/components/input';
-import { FileIcon, MusicIcon, VideoIcon, XIcon } from 'lucide-react';
-import Image from 'next/image';
-import React, { ChangeEvent } from 'react';
+import { FileIcon, XIcon } from 'lucide-react';
+import React, { ChangeEvent, ComponentType } from 'react';
 import { ControllerFieldState } from 'react-hook-form';
 
 import Spinner from '@/components/Spinner';
-import { FileType } from '@/types/file';
+import { File as ApiFile, FileType } from '@/types/file';
 
-type ApiFile = {
-  id: string;
-  name: string;
-  type: FileType;
-  url: string;
-  size: number;
-};
+import AudioPreview from './AudioPreview';
+import FilePreview from './FilePreview';
+import ImagePreview from './ImagePreview';
+import VideoPreview from './VideoPreview';
 
 type FileUploaderProps = {
   fieldState: ControllerFieldState;
@@ -30,6 +27,14 @@ type FileUploaderProps = {
   onRemove: (id: string) => void;
   files?: ApiFile[];
   title?: string;
+};
+
+const previews: Record<FileType, ComponentType<{ file: ApiFile }>> = {
+  IMAGE: ImagePreview,
+  VIDEO: VideoPreview,
+  AUDIO: AudioPreview,
+  FILE: FilePreview,
+  VOICE: AudioPreview,
 };
 
 const FileUploader = ({
@@ -54,6 +59,7 @@ const FileUploader = ({
     <Field data-invalid={fieldState.invalid}>
       <FieldContent>
         <FieldLabel>{title}</FieldLabel>
+        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
         <Button
           type="button"
           variant="outline"
@@ -84,48 +90,25 @@ const FileUploader = ({
       </FieldContent>
 
       {files && files.length > 0 && (
-        <div className="flex flex-col gap-2 overflow-hidden">
-          {files.map((file) => (
-            <div
-              className="grid grid-flow-col grid-cols-[auto_1fr] items-center gap-4 overflow-hidden max-w-full border p-4 pr-8 rounded-lg relative"
-              key={file.id}
-            >
-              {file.type === 'IMAGE' ? (
-                <div className="relative size-16 overflow-hidden rounded-lg">
-                  <Image
-                    className={'object-cover'}
-                    src={file.url}
-                    alt={file.name}
-                    fill
-                  />
-                </div>
-              ) : file.type === 'VIDEO' ? (
-                <VideoIcon className="size-8" />
-              ) : file.type === 'AUDIO' ? (
-                <MusicIcon className="size-8" />
-              ) : (
-                <FileIcon className="size-8" />
-              )}
-              <div className="flex flex-col gap-1 overflow-hidden">
-                <h3 title={file.name} className="font-semibold truncate">
-                  <a href={file.url} target="_blank" rel="noreferrer">
-                    {file.name}
-                  </a>
-                </h3>
-                <span className="text-muted-foreground text-sm">
-                  {Math.round(file.size / 1024)} KB
-                </span>
-              </div>
-              <Button
-                className="right-1 top-1 absolute"
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => onRemove(file.id)}
+        <div className="space-y-4">
+          {files.map((file) => {
+            const Preview = previews[file.type];
+            return (
+              <div
+                key={file.id}
+                className="grid grid-cols-[1fr_auto] gap-2 p-4 rounded-lg border bg-card"
               >
-                <XIcon />
-              </Button>
-            </div>
-          ))}
+                <Preview file={file} />
+                <Button
+                  variant="destructive"
+                  size="icon-sm"
+                  onClick={() => onRemove(file.id)}
+                >
+                  <XIcon />
+                </Button>
+              </div>
+            );
+          })}
         </div>
       )}
     </Field>

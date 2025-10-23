@@ -8,3 +8,14 @@ export const initFileUploadSchema = z.object({
   size: z.number(),
   mimetype: z.string(),
 });
+
+export const fileSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  type: z.enum(FILE_TYPES),
+  url: z.string(),
+  size: z.number(),
+  mimetype: z.string(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
+});

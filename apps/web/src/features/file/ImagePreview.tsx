@@ -11,7 +11,7 @@ type Props = {
 
 const ImagePreview = ({ file }: Props) => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 overflow-hidden">
       <div className="relative group overflow-hidden rounded-lg border bg-muted aspect-video cursor-pointer">
         <Image
           className="object-cover group-hover:scale-105 transition-transform"

@@ -1,9 +1,9 @@
 import z from 'zod';
 
-import { FILE_TYPES } from '@/constants/file';
 import { TASK_PRIORITIES, TASK_STATUSES } from '@/constants/task';
 
 import { optionSchema } from './common';
+import { fileSchema } from './file';
 import { createTagSchema } from './tag';
 
 export const createTaskSchema = z.object({
@@ -21,17 +21,7 @@ export const createTaskFormSchema = createTaskSchema
   .omit({ existingTags: true, newTags: true, filesIds: true })
   .extend({
     tags: z.array(optionSchema).optional(),
-    files: z
-      .array(
-        z.object({
-          id: z.uuid(),
-          name: z.string(),
-          type: z.enum(FILE_TYPES),
-          url: z.string(),
-          size: z.number(),
-        })
-      )
-      .optional(),
+    files: z.array(fileSchema).optional(),
   });
 
 export const editTaskSchema = createTaskSchema.extend({
