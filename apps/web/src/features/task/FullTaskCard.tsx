@@ -1,10 +1,5 @@
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@workspace/ui/components/avatar';
 import { Badge } from '@workspace/ui/components/badge';
-import { Button, buttonVariants } from '@workspace/ui/components/button';
+import { Button } from '@workspace/ui/components/button';
 import {
   Card,
   CardAction,
@@ -18,16 +13,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@workspace/ui/components/dropdown-menu';
-import { cn } from '@workspace/ui/lib/utils';
 import { format } from 'date-fns';
-import { FileIcon, MoreVerticalIcon, PencilIcon } from 'lucide-react';
-import Image from 'next/image';
+import { MoreVerticalIcon, PencilIcon } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
 import { TaskWithInclude } from '@/types/task';
 
 import DeleteTaskDropdownItem from './DeleteTaskDropdownItem';
+import TaskAttachmentsSection from './TaskAttachmentsSection';
 
 type Props = {
   task: TaskWithInclude<'tags' | 'creator' | 'files'>;
@@ -35,148 +29,110 @@ type Props = {
 
 const FullTaskCard = ({ task }: Props) => {
   return (
-    <Card className="gap-8">
-      <CardHeader>
-        <CardTitle className="text-xl">{task.title}</CardTitle>
-        <CardAction className="flex items-center gap-1">
-          <Badge variant="default">
-            {task.status.split('_').join(' ').toLowerCase()}
-          </Badge>
-          <Badge variant="outline">
-            {task.priority.split('_').join(' ').toLowerCase()}
-          </Badge>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVerticalIcon />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/projects/${task.projectId}/tasks/${task.id}/edit`}
-                >
-                  <PencilIcon /> Edit task
-                </Link>
-              </DropdownMenuItem>
-              <DeleteTaskDropdownItem
-                taskId={task.id}
-                projectId={task.projectId}
-              />
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="col-span-2">
-            <p className="text-muted-foreground text-xs">Description</p>
-            <p className="text-sm font-normal">{task.description}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Creator</p>
-            <Link
-              className="flex items-center gap-1.5"
-              href={`/users/${task.creatorId}`}
-            >
-              <Avatar className="size-6">
-                <AvatarImage src="https://i.redd.it/i-got-bored-so-i-decided-to-draw-a-random-image-on-the-v0-4ig97vv85vjb1.png?width=1280&format=png&auto=webp&s=7177756d1f393b6e093596d06e1ba539f723264b" />
-                <AvatarFallback className="text-xs bg-accent">
-                  {task.creator.username
-                    .split('-')
-                    .slice(0, 2)
-                    .map((word) => word.charAt(0).toUpperCase())
-                    .join('')}
-                </AvatarFallback>
-              </Avatar>
-              <span
-                className={cn(
-                  buttonVariants({ variant: 'link' }),
-                  'text-sm font-normal p-0'
-                )}
-              >
-                {task.creator.username}
-              </span>
-            </Link>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Created At</p>
-            <p className="text-sm font-normal">
-              {format(task.createdAt, 'PPP')}
-            </p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Updated At</p>
-            <p className="text-sm font-normal">
-              {format(task.createdAt, 'PPP')}
-            </p>
-          </div>
-          {task.deadline && (
-            <div>
-              <p className="text-muted-foreground text-xs">Deadline</p>
-              <p className="text-sm font-normal">
-                {format(task.deadline, 'PPP')}
-              </p>
-            </div>
-          )}
-          {task.tags.length > 0 && (
-            <div className="col-span-2">
-              <p className="text-muted-foreground text-xs">Tags</p>
-              <div className="flex gap-1 flex-wrap">
-                {task.tags.map((tag) => (
-                  <Badge key={tag.id} style={{ backgroundColor: tag.color }}>
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-          {task.files.length > 0 && (
-            <div className="col-span-2">
-              <p className="text-muted-foreground text-xs">Files</p>
-              <div className="grid gap-4 auto-rows-auto">
-                {task.files.map((file) => {
-                  return (
-                    <div
-                      key={file.id}
-                      className="rounded-sm overflow-hidden border p-2"
+    <div className="grid grid-cols-3 gap-4 @container">
+      <div className="col-span-3 @lg:col-span-2 space-y-6">
+        <Card className="gap-8">
+          <CardHeader>
+            <CardTitle className="text-xl">{task.title}</CardTitle>
+            <CardAction className="flex items-center gap-1">
+              <Badge variant="default">
+                {task.status.split('_').join(' ').toLowerCase()}
+              </Badge>
+              <Badge variant="outline">
+                {task.priority.split('_').join(' ').toLowerCase()}
+              </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreVerticalIcon />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={`/projects/${task.projectId}/tasks/${task.id}/edit`}
                     >
-                      {file.type === 'IMAGE' ? (
-                        <div className="relative overflow-hidden h-48">
-                          <Image
-                            className="object-cover"
-                            src={file.url}
-                            alt={file.name}
-                            fill
-                          />
-                        </div>
-                      ) : file.type === 'VIDEO' ? (
-                        <video src={file.url} controls />
-                      ) : file.type === 'AUDIO' ? (
-                        <audio className="w-full" src={file.url} controls />
-                      ) : (
-                        <div className="flex gap-1 items-center p-2">
-                          <FileIcon />
-                          <a
-                            key={file.id}
-                            href={file.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600"
-                          >
-                            {file.name}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      <PencilIcon /> Edit task
+                    </Link>
+                  </DropdownMenuItem>
+                  <DeleteTaskDropdownItem
+                    taskId={task.id}
+                    projectId={task.projectId}
+                  />
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <p className="text-muted-foreground text-xs">Description</p>
+                <p className="text-sm font-normal">{task.description}</p>
               </div>
+              {task.tags.length > 0 && (
+                <div className="col-span-2">
+                  <p className="text-muted-foreground text-xs">Tags</p>
+                  <div className="flex gap-1 flex-wrap">
+                    {task.tags.map((tag) => (
+                      <Badge
+                        key={tag.id}
+                        style={{ backgroundColor: tag.color }}
+                      >
+                        {tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+
+        {task.files.length > 0 && <TaskAttachmentsSection files={task.files} />}
+      </div>
+      <div className="space-y-6 col-span-3 @lg:col-span-1">
+        <Card>
+          <CardHeader>
+            <CardTitle>Properties</CardTitle>
+          </CardHeader>
+          <CardContent className="@container">
+            <div className="grid @sm:grid-cols-2 gap-4 overflow-hidden">
+              <div className="@sm:col-span-2">
+                <p className="text-muted-foreground text-xs">Creator</p>
+                <Link
+                  className={
+                    'text-primary underline-offset-4 hover:underline text-sm font-normal'
+                  }
+                  href={`/users/${task.creatorId}`}
+                >
+                  {task.creator.username}
+                </Link>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Created At</p>
+                <p className="text-sm font-normal">
+                  {format(task.createdAt, 'PPP')}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-xs">Updated At</p>
+                <p className="text-sm font-normal">
+                  {format(task.createdAt, 'PPP')}
+                </p>
+              </div>
+              {task.deadline && (
+                <div>
+                  <p className="text-muted-foreground text-xs">Deadline</p>
+                  <p className="text-sm font-normal">
+                    {format(task.deadline, 'PPP')}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
