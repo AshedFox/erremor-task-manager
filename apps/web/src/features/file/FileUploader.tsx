@@ -4,6 +4,7 @@ import { Button } from '@workspace/ui/components/button';
 import {
   Field,
   FieldContent,
+  FieldError,
   FieldLabel,
 } from '@workspace/ui/components/field';
 import { Input } from '@workspace/ui/components/input';
@@ -54,6 +55,7 @@ const FileUploader = ({
     <Field data-invalid={fieldState.invalid}>
       <FieldContent>
         <FieldLabel>{title}</FieldLabel>
+        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
         <Button
           type="button"
           variant="outline"
