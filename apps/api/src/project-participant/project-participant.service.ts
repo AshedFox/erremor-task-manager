@@ -161,4 +161,11 @@ export class ProjectParticipantService {
       where: { projectId_userId: { projectId, userId } },
     });
   }
+
+  async updateLastViewedAt(projectId: string, userId: string): Promise<void> {
+    await this.prisma.projectParticipant.update({
+      where: { projectId_userId: { projectId, userId } },
+      data: { lastViewedAt: new Date() },
+    });
+  }
 }
