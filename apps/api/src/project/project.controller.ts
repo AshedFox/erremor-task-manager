@@ -64,6 +64,22 @@ export class ProjectController {
     return { nodes: projects, totalCount: count };
   }
 
+  @Get('/recent')
+  async searchRecent(
+    @CurrentUser('sub') userId: string,
+    @Query() pagination: OffsetPaginationDto,
+    @Query() filter: SearchProjectsFilterDto,
+    @Query() include: ProjectsIncludeDto
+  ): Promise<SearchProjectsResponseDto> {
+    const [projects, count] = await this.projectService.searchRecent(
+      { skip: pagination.skip, take: pagination.take },
+      { ...filter, userId },
+      include
+    );
+
+    return { nodes: projects, totalCount: count };
+  }
+
   @UseGuards(ProjectRolesGuard)
   @ProjectRole(ParticipantRole.GUEST)
   @Get(':projectId')
@@ -109,5 +125,14 @@ export class ProjectController {
   @Delete(':projectId')
   remove(@Param('projectId') id: string): Promise<Project> {
     return this.projectService.remove(id);
+  }
+
+  @ProjectRole(ParticipantRole.GUEST)
+  @Post(':projectId/view')
+  view(
+    @Param('projectId') projectId: string,
+    @CurrentUser('sub') userId: string
+  ): Promise<void> {
+    return this.projectService.view(projectId, userId);
   }
 }

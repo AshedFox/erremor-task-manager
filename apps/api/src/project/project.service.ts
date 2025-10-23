@@ -10,6 +10,7 @@ import { Include, mapInclude } from '@/common/include';
 import { OffsetPagination } from '@/common/pagination';
 import { Sort } from '@/common/sort';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ProjectParticipantService } from '@/project-participant/project-participant.service';
 
 import {
   CreateProjectParams,
@@ -20,7 +21,10 @@ import {
 
 @Injectable()
 export class ProjectService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly participantService: ProjectParticipantService
+  ) {}
 
   create(data: CreateProjectParams): Promise<Project> {
     const { creatorId, ...rest } = data;
@@ -73,6 +77,59 @@ export class ProjectService {
     ]);
   }
 
+  async searchRecent(
+    pagination: OffsetPagination,
+    filter: FindManyProjectsFilter,
+    { include }: Include<Prisma.ProjectInclude>
+  ): Promise<FindManyProjectsResult> {
+    const prismaInclude = mapInclude(include);
+    const { search, userId, ...restFilter } = filter;
+    const where = {
+      OR: search
+        ? [
+            { name: { contains: search, mode: 'insensitive' } },
+            {
+              description: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          ]
+        : undefined,
+      participants: { some: { userId, status: ParticipantStatus.JOINED } },
+      ...restFilter,
+    } satisfies Prisma.ProjectWhereInput;
+
+    const participants = await this.prisma.projectParticipant.findMany({
+      ...pagination,
+      where: {
+        userId,
+        status: ParticipantStatus.JOINED,
+      },
+      orderBy: {
+        lastViewedAt: 'desc',
+      },
+      select: {
+        projectId: true,
+        lastViewedAt: true,
+      },
+    });
+
+    return this.prisma.$transaction([
+      this.prisma.project.findMany({
+        ...pagination,
+        where: {
+          ...where,
+          id: {
+            in: participants.map((p) => p.projectId),
+          },
+        },
+        include: prismaInclude,
+      }),
+      this.prisma.project.count({ where }),
+    ]);
+  }
+
   async findOne(
     id: string,
     { include }: Include<Prisma.ProjectInclude>
@@ -99,5 +156,9 @@ export class ProjectService {
 
   remove(id: string): Promise<Project> {
     return this.prisma.project.delete({ where: { id } });
+  }
+
+  async view(projectId: string, userId: string): Promise<void> {
+    await this.participantService.updateLastViewedAt(projectId, userId);
   }
 }
