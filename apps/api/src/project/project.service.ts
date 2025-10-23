@@ -10,6 +10,7 @@ import { Include, mapInclude } from '@/common/include';
 import { OffsetPagination } from '@/common/pagination';
 import { Sort } from '@/common/sort';
 import { PrismaService } from '@/prisma/prisma.service';
+import { ProjectParticipantService } from '@/project-participant/project-participant.service';
 
 import {
   CreateProjectParams,
@@ -20,7 +21,10 @@ import {
 
 @Injectable()
 export class ProjectService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly participantService: ProjectParticipantService
+  ) {}
 
   create(data: CreateProjectParams): Promise<Project> {
     const { creatorId, ...rest } = data;
@@ -99,5 +103,9 @@ export class ProjectService {
 
   remove(id: string): Promise<Project> {
     return this.prisma.project.delete({ where: { id } });
+  }
+
+  async view(projectId: string, userId: string): Promise<void> {
+    await this.participantService.updateLastViewedAt(projectId, userId);
   }
 }

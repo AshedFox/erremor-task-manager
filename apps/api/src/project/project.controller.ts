@@ -110,4 +110,13 @@ export class ProjectController {
   remove(@Param('projectId') id: string): Promise<Project> {
     return this.projectService.remove(id);
   }
+
+  @ProjectRole(ParticipantRole.GUEST)
+  @Post(':projectId/view')
+  view(
+    @Param('projectId') projectId: string,
+    @CurrentUser('sub') userId: string
+  ): Promise<void> {
+    return this.projectService.view(projectId, userId);
+  }
 }
