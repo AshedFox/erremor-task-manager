@@ -19,6 +19,7 @@ import React, { ReactNode } from 'react';
 import ViewModeSwitch from '@/components/ViewModeSwitch';
 import DeleteProjectDropdownItem from '@/features/project/DeleteProjectDropdownItem';
 import LeaveProjectDropdownItem from '@/features/project/LeaveProjectDropdownItem';
+import ProjectViewLogger from '@/features/project/ProjectViewLogger';
 import { apiFetch } from '@/lib/api-fetch.server';
 import { ProjectWithInclude } from '@/types/project';
 import { User } from '@/types/user';
@@ -115,6 +116,7 @@ const Layout = async ({ children, params }: Props) => {
           )}
         </div>
       </div>
+      <ProjectViewLogger projectId={project.id} />
       {children}
     </div>
   );
