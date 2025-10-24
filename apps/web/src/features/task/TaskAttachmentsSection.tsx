@@ -100,7 +100,7 @@ const TaskAttachmentsSection = ({ files }: Props) => {
 
             return (
               files.length > 0 && (
-                <div className="space-y-3">
+                <div key={type} className="space-y-3">
                   <h4 className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Icon className="size-4" />
                     {title} ({files.length})
