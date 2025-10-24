@@ -82,52 +82,83 @@ export class ProjectService {
     filter: FindManyProjectsFilter,
     { include }: Include<Prisma.ProjectInclude>
   ): Promise<FindManyProjectsResult> {
-    const prismaInclude = mapInclude(include);
-    const { search, userId, ...restFilter } = filter;
-    const where = {
-      OR: search
-        ? [
-            { name: { contains: search, mode: 'insensitive' } },
-            {
-              description: {
-                contains: search,
-                mode: 'insensitive',
-              },
-            },
-          ]
-        : undefined,
-      participants: { some: { userId, status: ParticipantStatus.JOINED } },
-      ...restFilter,
-    } satisfies Prisma.ProjectWhereInput;
+    const { userId, ...rest } = filter;
 
-    const participants = await this.prisma.projectParticipant.findMany({
-      ...pagination,
-      where: {
-        userId,
-        status: ParticipantStatus.JOINED,
-      },
-      orderBy: {
-        lastViewedAt: 'desc',
-      },
-      select: {
-        projectId: true,
-        lastViewedAt: true,
-      },
-    });
+    const filters = [];
 
-    return this.prisma.$transaction([
-      this.prisma.project.findMany({
-        ...pagination,
-        where: {
-          ...where,
-          id: {
-            in: participants.map((p) => p.projectId),
-          },
-        },
-        include: prismaInclude,
-      }),
-      this.prisma.project.count({ where }),
-    ]);
+    if (rest.status) {
+      filters.push(Prisma.sql`p.status = ${rest.status}::"ProjectStatus"`);
+    }
+
+    if (rest.color) {
+      filters.push(Prisma.sql`p.color = ${rest.color}`);
+    }
+
+    if (rest.search) {
+      filters.push(
+        Prisma.sql`p.name ILIKE ${`%${rest.search}%`} OR p.description ILIKE ${`%${rest.search}%`}`
+      );
+    }
+
+    const whereClause =
+      filters.length > 0
+        ? Prisma.sql`AND ${Prisma.join(filters, ' AND ')}`
+        : Prisma.empty;
+
+    const selectFields = [Prisma.sql`p.*`];
+
+    if (include?.includes('tasks')) {
+      selectFields.push(
+        Prisma.sql`COALESCE(json_agg(DISTINCT t.*) FILTER (WHERE t.id IS NOT NULL), '[]') as tasks`
+      );
+    }
+
+    if (include?.includes('participants')) {
+      selectFields.push(
+        Prisma.sql`COALESCE(json_agg(DISTINCT pp2.*) FILTER (WHERE pp2.id IS NOT NULL), '[]') as participants`
+      );
+    }
+
+    const selectClause = Prisma.join(selectFields, ', ');
+
+    const joins = [];
+
+    if (include?.includes('tasks')) {
+      joins.push(Prisma.sql`LEFT JOIN "Task" t ON t."projectId" = p.id`);
+    }
+
+    if (include?.includes('participants')) {
+      joins.push(
+        Prisma.sql`LEFT JOIN "ProjectParticipant" pp2 ON pp2."projectId" = p.id`
+      );
+    }
+
+    const joinClause =
+      joins.length > 0 ? Prisma.join(joins, ' ') : Prisma.empty;
+
+    return [
+      await this.prisma.$queryRaw<Project[]>`
+        SELECT ${selectClause}
+        FROM "Project" p
+        INNER JOIN "ProjectParticipant" pp ON pp."projectId" = p.id
+        ${joinClause}
+        WHERE pp."userId" = ${userId}::uuid
+          AND pp.status = ${ParticipantStatus.JOINED}::"ParticipantStatus"
+          ${whereClause}
+        GROUP BY p.id, pp."lastViewedAt"
+        ORDER BY pp."lastViewedAt" DESC NULLS LAST
+        OFFSET ${pagination.skip}
+        LIMIT ${pagination.take}
+      `,
+      await this.prisma.$queryRaw<[{ count: number }]>`
+        SELECT COUNT(DISTINCT p.id)::int as count
+        FROM "Project" p
+        INNER JOIN "ProjectParticipant" pp ON pp."projectId" = p.id
+        WHERE pp."userId" = ${userId}::uuid
+          AND pp.status = ${ParticipantStatus.JOINED}::"ParticipantStatus"
+          ${whereClause}
+      `.then((result) => Number(result[0].count)),
+    ];
   }
 
   async findOne(
