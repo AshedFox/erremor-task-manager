@@ -48,4 +48,4 @@ export const PROJECT_SORT_PARAMS: Record<
   CREATED_DESC: { sortBy: 'createdAt', sortOrder: 'desc' },
 } as const;
 
-export const PROJECTS_PAGE_SIZE = 1;
+export const PROJECTS_PAGE_SIZE = 20;
