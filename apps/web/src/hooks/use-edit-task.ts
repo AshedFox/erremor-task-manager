@@ -5,18 +5,19 @@ import z from 'zod';
 
 import { editTask } from '@/lib/actions/editTask';
 import { editTaskFormSchema } from '@/lib/validation/task';
+import { ApiFetchError } from '@/types/common';
 import { Task } from '@/types/task';
 
 type Options = {
   onSuccess?: (task: Task) => void;
-  onError?: (e: Error) => void;
+  onError?: (e: ApiFetchError) => void;
 };
 
 type EditTaskInput = z.infer<typeof editTaskFormSchema>;
 
 export const useEditTask = (id: string, { onSuccess, onError }: Options) =>
   useMutation({
-    mutationFn: async (input: EditTaskInput) => {
+    mutationFn: async (input: EditTaskInput & { version: number }) => {
       const { tags, files, ...rest } = input;
       const { data, error } = await editTask(id, {
         ...rest,
