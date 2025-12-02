@@ -8,8 +8,8 @@ import { Reflector } from '@nestjs/core';
 import { ParticipantRole, ParticipantStatus } from '@prisma/client';
 import { Request } from 'express';
 
-import { PrismaService } from '@/prisma/prisma.service';
 import { ROLE_HIERARCHY } from '@/project-participant/constants/role';
+import { ProjectParticipantService } from '@/project-participant/project-participant.service';
 
 import {
   PROJECT_ID_SOURCE_KEY,
@@ -21,7 +21,7 @@ import { PROJECT_ROLE_KEY } from '../decorators/project-roles.decorator';
 export class ProjectRolesGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly prisma: PrismaService
+    private readonly projectParticipantService: ProjectParticipantService
   ) {}
 
   async canActivate(context: ExecutionContext) {
@@ -61,14 +61,12 @@ export class ProjectRolesGuard implements CanActivate {
       throw new ForbiddenException('Missing user or project context');
     }
 
-    const participant = await this.prisma.projectParticipant.findUnique({
-      where: {
-        projectId_userId: { userId, projectId },
-        status: ParticipantStatus.JOINED,
-      },
-    });
+    const participant = await this.projectParticipantService.findOne(
+      projectId,
+      userId
+    );
 
-    if (!participant) {
+    if (!participant || participant.status !== ParticipantStatus.JOINED) {
       throw new ForbiddenException("You don't have access to this project");
     }
 
