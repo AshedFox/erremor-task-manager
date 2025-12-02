@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, Task } from '@prisma/client';
 
 import { Include, mapInclude } from '@/common/include';
@@ -94,18 +98,41 @@ export class TaskService {
   }
 
   update(id: string, data: UpdateTaskParams): Promise<Task> {
-    const { existingTags, newTags, filesIds, ...rest } = data;
+    const { existingTags, newTags, filesIds, version, ...rest } = data;
 
-    return this.prisma.task.update({
-      where: { id },
-      data: {
-        ...rest,
-        tags: {
-          set: existingTags ? existingTags.map((id) => ({ id })) : undefined,
-          create: newTags ? newTags : undefined,
+    return this.prisma.$transaction(async (tx) => {
+      const currentTask = await tx.task.findUnique({
+        where: { id },
+      });
+
+      if (!currentTask) {
+        throw new NotFoundException(`Task with id ${id} not found!`);
+      }
+
+      if (currentTask.version !== version) {
+        const actualTask = await tx.task.findUnique({
+          where: { id },
+          include: { tags: true, files: true },
+        });
+
+        throw new ConflictException({
+          message: 'Task has been updated by another user',
+          data: actualTask,
+        });
+      }
+
+      return tx.task.update({
+        where: { id },
+        data: {
+          ...rest,
+          version: { increment: 1 },
+          tags: {
+            set: existingTags ? existingTags.map((id) => ({ id })) : undefined,
+            create: newTags ? newTags : undefined,
+          },
+          files: { set: filesIds?.map((id) => ({ id })) },
         },
-        files: { set: filesIds?.map((id) => ({ id })) },
-      },
+      });
     });
   }
 

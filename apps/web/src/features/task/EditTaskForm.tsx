@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@workspace/ui/components/button';
 import { useRouter } from 'next/navigation';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import z from 'zod';
@@ -16,6 +16,7 @@ import { useUploadFile } from '@/hooks/use-upload-file';
 import { editTaskFormSchema } from '@/lib/validation/task';
 import { TaskWithInclude } from '@/types/task';
 
+import TaskEditConflictAlert from './TaskEditConflictAlert';
 import TaskFormFields from './TaskFormFields';
 
 type Props = {
@@ -39,6 +40,10 @@ const EditTaskForm = ({ initialData, onSuccess }: Props) => {
 
   const queryClient = useQueryClient();
   const router = useRouter();
+
+  const [currentVersion, setCurrentVersion] = useState(initialData.version);
+  const [showChoiceDialog, setShowChoiceDialog] = useState(false);
+  const [newData, setNewData] = useState<TaskWithInclude<'tags' | 'files'>>();
 
   const { mutate, isPending, isError, error } = useEditTask(initialData.id, {
     onSuccess(data) {
@@ -69,14 +74,50 @@ const EditTaskForm = ({ initialData, onSuccess }: Props) => {
         ],
       });
       queryClient.invalidateQueries({ queryKey: ['tasks', initialData.id] });
+      setCurrentVersion(data.version);
       toast.success('Successfully edited tasks');
       router.refresh();
       onSuccess?.();
     },
     onError(e) {
-      toast.error('Failed to edit task', { description: e.message });
+      if (e.status === 409) {
+        setShowChoiceDialog(true);
+        setNewData(e.data as TaskWithInclude<'tags' | 'files'>);
+      } else {
+        toast.error('Failed to edit task', { description: e.message });
+      }
     },
   });
+
+  const handleOverwrite = useCallback(() => {
+    if (!newData) {
+      return;
+    }
+
+    const formData = form.getValues();
+
+    mutate({ ...formData, version: newData.version });
+    setShowChoiceDialog(false);
+    setNewData(undefined);
+  }, [form, mutate, newData]);
+
+  const handleAbort = useCallback(() => {
+    if (!newData) {
+      return;
+    }
+
+    form.reset({
+      ...newData,
+      deadline: newData.deadline ? new Date(newData.deadline) : undefined,
+      tags: newData.tags.map((tag) => ({ value: tag.id, label: tag.name })),
+    });
+
+    setCurrentVersion(newData.version);
+    setShowChoiceDialog(false);
+    setNewData(undefined);
+
+    toast.info('Data refreshed from server');
+  }, [form, newData]);
 
   const { mutateAsync: addTag } = useCreateTag({
     onSuccess() {
@@ -110,7 +151,7 @@ const EditTaskForm = ({ initialData, onSuccess }: Props) => {
   );
 
   const onSubmit = (input: EditTaskInput) => {
-    mutate(input);
+    mutate({ ...input, version: currentVersion });
   };
 
   return (
@@ -125,6 +166,13 @@ const EditTaskForm = ({ initialData, onSuccess }: Props) => {
         onTagCreate={addTag}
         mode="edit"
       />
+
+      {showChoiceDialog && (
+        <TaskEditConflictAlert
+          onAbort={handleAbort}
+          onOverwrite={handleOverwrite}
+        />
+      )}
 
       {isError && <div className="text-muted-foreground">{error.message}</div>}
 

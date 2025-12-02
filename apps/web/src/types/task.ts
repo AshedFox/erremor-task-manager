@@ -14,6 +14,7 @@ export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 export type Task = {
   id: string;
   title: string;
+  version: number;
   description?: string;
   projectId: string;
   creatorId: string;

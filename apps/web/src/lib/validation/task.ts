@@ -26,6 +26,7 @@ export const createTaskFormSchema = createTaskSchema
 
 export const editTaskSchema = createTaskSchema.extend({
   status: z.enum(TASK_STATUSES),
+  version: z.number().min(1),
 });
 
 export const editTaskFormSchema = createTaskFormSchema.extend({
