@@ -14,6 +14,7 @@ import { PrismaService } from '@/prisma/prisma.service';
 
 import { ROLE_HIERARCHY } from './constants/role';
 import { SearchProjectParticipantsFilterDto } from './dto/search-project-participants-filter.dto';
+import { ProjectParticipantCacheService } from './project-participant-cache.service';
 import {
   FindManyProjectsParticipant,
   UpdateProjectParticipantParams,
@@ -21,7 +22,10 @@ import {
 
 @Injectable()
 export class ProjectParticipantService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: ProjectParticipantCacheService
+  ) {}
 
   async create(
     projectId: string,
@@ -74,8 +78,17 @@ export class ProjectParticipantService {
 
   async findOne(
     projectId: string,
-    userId: string
+    userId: string,
+    useCache: boolean = true
   ): Promise<ProjectParticipant> {
+    if (useCache) {
+      const cached = await this.cache.get(projectId, userId);
+
+      if (cached) {
+        return cached;
+      }
+    }
+
     const participant = await this.prisma.projectParticipant.findUnique({
       where: { projectId_userId: { userId, projectId } },
     });
@@ -83,6 +96,8 @@ export class ProjectParticipantService {
     if (!participant) {
       throw new NotFoundException('Participant not found');
     }
+
+    await this.cache.set(projectId, userId, participant);
 
     return participant;
   }
@@ -114,10 +129,14 @@ export class ProjectParticipantService {
       throw new ForbiddenException("You don't have enough access");
     }
 
-    return this.prisma.projectParticipant.update({
+    const updated = await this.prisma.projectParticipant.update({
       where: { projectId_userId: { projectId, userId } },
       data,
     });
+
+    await this.cache.invalidate(projectId, userId);
+
+    return updated;
   }
 
   async remove(
@@ -145,9 +164,13 @@ export class ProjectParticipantService {
       throw new ForbiddenException("You don't have enough access");
     }
 
-    return this.prisma.projectParticipant.delete({
+    const deleted = await this.prisma.projectParticipant.delete({
       where: { projectId_userId: { projectId, userId } },
     });
+
+    await this.cache.invalidate(projectId, userId);
+
+    return deleted;
   }
 
   async leave(projectId: string, userId: string): Promise<ProjectParticipant> {
@@ -157,9 +180,13 @@ export class ProjectParticipantService {
       throw new ForbiddenException('Owner cannot leave the group');
     }
 
-    return this.prisma.projectParticipant.delete({
+    const deleted = await this.prisma.projectParticipant.delete({
       where: { projectId_userId: { projectId, userId } },
     });
+
+    await this.cache.invalidate(projectId, userId);
+
+    return deleted;
   }
 
   async updateLastViewedAt(projectId: string, userId: string): Promise<void> {
