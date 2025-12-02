@@ -34,6 +34,7 @@ const TasksKanban = ({ projectId }: Props) => {
         method: 'PATCH',
         body: JSON.stringify({
           status: task.status,
+          version: task.version,
         }),
         headers: {
           'Content-Type': 'application/json',
