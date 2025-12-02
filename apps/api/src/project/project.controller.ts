@@ -20,6 +20,7 @@ import { SearchTasksSortDto } from '@/task/dto/search-tasks-sort.dto';
 import { TaskIncludeDto } from '@/task/dto/task-include.dto';
 import { TaskService } from '@/task/task.service';
 
+import { ProjectIdSource } from './decorators/project-id-source.decorator';
 import { ProjectRole } from './decorators/project-roles.decorator';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectsIncludeDto } from './dto/projects-include.dto';
@@ -81,6 +82,7 @@ export class ProjectController {
   }
 
   @UseGuards(ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.GUEST)
   @Get(':projectId')
   findOne(
@@ -91,6 +93,7 @@ export class ProjectController {
   }
 
   @UseGuards(ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.GUEST)
   @Get(':projectId/tasks')
   async searchProjectTasks(
@@ -111,6 +114,7 @@ export class ProjectController {
   }
 
   @UseGuards(ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.OWNER)
   @Patch(':projectId')
   update(
@@ -121,12 +125,15 @@ export class ProjectController {
   }
 
   @UseGuards(ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.OWNER)
   @Delete(':projectId')
   remove(@Param('projectId') id: string): Promise<Project> {
     return this.projectService.remove(id);
   }
 
+  @UseGuards(ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.GUEST)
   @Post(':projectId/view')
   view(

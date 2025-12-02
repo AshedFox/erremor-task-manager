@@ -14,6 +14,7 @@ import { ParticipantRole, ProjectInvitation } from '@prisma/client';
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { OffsetPaginationDto } from '@/common/pagination';
+import { ProjectIdSource } from '@/project/decorators/project-id-source.decorator';
 import { ProjectRole } from '@/project/decorators/project-roles.decorator';
 import { ProjectRolesGuard } from '@/project/guards/project-roles.guard';
 
@@ -30,6 +31,7 @@ export class ProjectInvitationController {
   constructor(private readonly invitationService: ProjectInvitationService) {}
 
   @UseGuards(JwtAuthGuard, ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.ADMIN)
   @Post(':userId')
   async create(
@@ -70,6 +72,7 @@ export class ProjectInvitationController {
   }
 
   @UseGuards(JwtAuthGuard, ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.ADMIN)
   @Get()
   async search(
@@ -91,6 +94,7 @@ export class ProjectInvitationController {
   }
 
   @UseGuards(JwtAuthGuard, ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.ADMIN)
   @Get(':userId')
   findOne(
@@ -102,6 +106,7 @@ export class ProjectInvitationController {
   }
 
   @UseGuards(JwtAuthGuard, ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.ADMIN)
   @Patch(':userId')
   update(
@@ -113,6 +118,7 @@ export class ProjectInvitationController {
   }
 
   @UseGuards(JwtAuthGuard, ProjectRolesGuard)
+  @ProjectIdSource('params')
   @ProjectRole(ParticipantRole.ADMIN)
   @Delete(':userId')
   remove(
