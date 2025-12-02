@@ -15,6 +15,7 @@ import { ParticipantRole, Task } from '@prisma/client';
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { Paginated, PaginationDto } from '@/common/pagination/dto';
+import { ProjectIdSource } from '@/project/decorators/project-id-source.decorator';
 import { ProjectRole } from '@/project/decorators/project-roles.decorator';
 import { ProjectRolesGuard } from '@/project/guards/project-roles.guard';
 
@@ -31,6 +32,7 @@ export class TaskController {
   constructor(private readonly taskService: TaskService) {}
 
   @UseGuards(ProjectRolesGuard)
+  @ProjectIdSource('body')
   @ProjectRole(ParticipantRole.USER)
   @Post()
   create(

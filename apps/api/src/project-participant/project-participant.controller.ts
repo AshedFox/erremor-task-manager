@@ -13,6 +13,7 @@ import { ParticipantRole, ProjectParticipant } from '@prisma/client';
 import { CurrentUser } from '@/auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { OffsetPaginationDto } from '@/common/pagination';
+import { ProjectIdSource } from '@/project/decorators/project-id-source.decorator';
 import { ProjectRole } from '@/project/decorators/project-roles.decorator';
 import { ProjectRolesGuard } from '@/project/guards/project-roles.guard';
 import { SearchUsersFilterDto } from '@/user/dto/search-users-filter.dto';
@@ -27,6 +28,7 @@ import { SearchProjectParticipantsSortDto } from './dto/search-project-participa
 import { ProjectParticipantService } from './project-participant.service';
 
 @UseGuards(JwtAuthGuard, ProjectRolesGuard)
+@ProjectIdSource('params')
 @Controller('projects/:projectId')
 export class ProjectParticipantController {
   constructor(
