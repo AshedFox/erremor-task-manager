@@ -1,6 +1,6 @@
 'use client';
 
-import { FetchResult } from '@/types/common';
+import { ApiFetchError, FetchResult } from '@/types/common';
 
 export async function apiFetchSafe<T = unknown>(
   path: string,
@@ -13,12 +13,18 @@ export async function apiFetchSafe<T = unknown>(
     });
 
     if (!res.ok) {
-      const { message } = (await res.json()) as { message: string | string[] };
+      const { message, data } = (await res.json()) as {
+        message: string | string[];
+        data?: unknown;
+      };
 
       return {
-        error: new Error(
-          message instanceof Array ? message.join(', ') : message
-        ),
+        error: {
+          message: message instanceof Array ? message.join(', ') : message,
+          status: res.status,
+          data,
+          name: ApiFetchError.name,
+        },
         data: null,
       };
     }
@@ -30,7 +36,12 @@ export async function apiFetchSafe<T = unknown>(
   } catch {
     return {
       data: null,
-      error: new Error('Failed to fetch'),
+      error: {
+        message: 'Failed to fetch',
+        status: 500,
+        name: ApiFetchError.name,
+        data: undefined,
+      },
     };
   }
 }
